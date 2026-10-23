@@ -24,5 +24,5 @@
 - [x] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations
 - [x] Fill more of the screen; add background comets
 - [x] Remove the module direction panel (rotate by clicking a placed module or pressing R)
-- [ ] Fix the clock not counting down during flight
-- [ ] Timers: +20s per mission (20/40/60/80/100s)
+- [x] Clock now runs the whole time a mission is on screen (planning included), not only in flight
+- [x] Timers: +20s per mission (20/40/60/80/100s)
