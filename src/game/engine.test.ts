@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeDirs, makeGrid, simulate, step, type Cell } from "./engine";
+import { LEVELS, makeDirs, makeGrid, refund, simulate, step, type Cell } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
@@ -9,6 +9,10 @@ const build = (li: number, mods: Mod[]) => {
 };
 
 describe("drift rules", () => {
+  it.each(["thruster", "shield", "comms"] as const)("removing %s leaves coins unchanged, including at zero", (module) => {
+    expect(0 + refund(module)).toBe(0);
+    expect(5 + refund(module)).toBe(5);
+  });
   it.each([0, 1, 2, 3])("anchor direction %i holds only its facing square", (dir) => {
     const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     const vector = vectors[dir];

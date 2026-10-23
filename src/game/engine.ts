@@ -107,5 +107,5 @@ export function simulate(g: Cell[][], dirs: number[][], level: Level, max = 60) 
   return "stuck";
 }
 
-/** Refund when a module is removed: half its cost, rounded down. */
-export const refund = (m: ModType) => Math.floor(MODS[m].cost / 2);
+/** Removal never changes the wallet; rotating is also free. */
+export const refund = (_m: ModType) => 0;

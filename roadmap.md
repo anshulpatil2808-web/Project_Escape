@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Removing a module leaves coins unchanged; rotation remains free at zero coins
 - [ ] Meaningful rotation for anchor, bumper and thruster, with touch controls and rule tests
 - [ ] Verify automatic level travel and whole-site white-hole emergence
 - [x] Electric glowing box behind SPAGHETTIFIED
