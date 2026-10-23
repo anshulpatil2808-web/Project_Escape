@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
 import { Button } from "@/components/ui/button";
-import { RotateCw, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
 import { drawDirectionalCell, drawCell } from "@/game/sprites";
 import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
@@ -97,7 +96,6 @@ function Game() {
   const [lost, setLost] = useState<Loss | null>(null);
   const [emerging, setEmerging] = useState(false);
   const [dirs, setDirs] = useState<number[][]>(makeDirs);
-  const [selected, setSelected] = useState<Vec | null>(null);
   const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [started, setStarted] = useState(false);
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
@@ -331,7 +329,6 @@ function Game() {
     const current = state.current;
     const module = current.grid[y]?.[x];
     if (current.locked || current.won || !module || module === "rock") return;
-    setSelected(cell);
     popped.current.set(`${x},${y}`, performance.now());
     setDirs((d) => d.map((row, yy) => row.map((v, xx) => xx === x && yy === y ? direction ?? (v + 1) % 4 : v)));
     play("warn");
@@ -370,7 +367,6 @@ function Game() {
       if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
       popped.current.set(`${x},${y}`, performance.now());
-      setSelected([x, y]);
       {
         // aim at the ship by default if it sits in a straight line
         const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
@@ -394,7 +390,6 @@ function Game() {
     }
     const l = LEVELS[i];
     if (!l) return;
-    setSelected(null);
     setFinished(false);
     setUfo(null);
     warp.current = null;
@@ -459,17 +454,6 @@ function Game() {
               ))}
               <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
             </div>
-            {selected && grid[selected[1]]?.[selected[0]] && grid[selected[1]]?.[selected[0]] !== "rock" && (
-              <div className="mt-4 border-t border-border pt-3">
-                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Module direction">
-                  {[ArrowUp, ArrowRight, ArrowDown, ArrowLeft].map((Icon, dir) => (
-                    <Button key={dir} variant="pixel" size="icon" disabled={locked || won} aria-label={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} title={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} aria-pressed={dirs[selected[1]]?.[selected[0]] === dir} className={dirs[selected[1]]?.[selected[0]] === dir ? "pixel-btn-active" : ""} onClick={() => rotateModule(selected, dir)}><Icon /></Button>
-                  ))}
-                  <Button variant="pixel" size="icon" disabled={locked || won} aria-label="Rotate selected module" title="Rotate clockwise" onClick={() => rotateModule(selected)}><RotateCw /></Button>
-                </div>
-              </div>
-            )}
           </aside>
 
           <div className="board-column order-1 flex flex-col items-center md:order-2">
@@ -498,7 +482,7 @@ function Game() {
                     const cur = next[y]![x] as ModType;
                     next[y]![x] = null;
                     if (!sandbox) setWallet((w) => w + refund(cur));
-                    setGrid(next); setSelected(null); play("remove");
+                    setGrid(next); play("remove");
                   }
                   setTool(prev);
                 }}
