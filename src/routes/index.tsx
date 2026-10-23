@@ -106,7 +106,7 @@ function Game() {
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
-  const live = { grid, dirs, ship, vel, level, flying, li, won };
+  const live = { grid, dirs, ship, vel, level, flying, li, won, tool };
   const state = useRef(live);
   state.current = live;
 
@@ -278,6 +278,15 @@ function Game() {
       }
       c.restore();
       const h = hover.current;
+      const { tool: tl } = state.current;
+      if (h && tl !== "erase" && !grid[h[1]]?.[h[0]] && h[1] < HORIZON_Y && !(h[0] === ship[0] && h[1] === ship[1])) {
+        // ghost preview of what a click will place (thrusters pre-aimed at the ship)
+        c.globalAlpha = 0.4 + 0.15 * Math.sin(t / 150);
+        const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
+        if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
+        else drawCell(c, tl, h[0] * TILE, h[1] * TILE, t, true);
+        c.globalAlpha = 1;
+      }
       if (h) {
         c.strokeStyle = "rgba(94,242,255,0.8)";
         c.lineWidth = 1;
@@ -287,6 +296,20 @@ function Game() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // R rotates the thruster under the cursor
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "r" && e.key !== "R") return;
+      const h = hover.current;
+      if (!h || state.current.grid[h[1]]?.[h[0]] !== "thruster") return;
+      popped.current.set(`${h[0]},${h[1]}`, performance.now());
+      setDirs((d) => d.map((r, yy) => r.map((v, xx) => (xx === h[0] && yy === h[1] ? (v + 1) % 4 : v))));
+      play("warn");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const cellAt = (e: React.MouseEvent<HTMLCanvasElement>): [number, number] => {
@@ -300,6 +323,7 @@ function Game() {
     if (cur === "rock" || (x === ship[0] && y === ship[1]) || (x === level.portal[0] && y === level.portal[1])) return play("warn");
     if (tool === "thruster" && cur === "thruster") {
       // clicking a placed thruster rotates it (free)
+      popped.current.set(`${x},${y}`, performance.now());
       setDirs((d) => d.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? (v + 1) % 4 : v))));
       return play("warn");
     }
@@ -313,6 +337,7 @@ function Game() {
       const price = MODS[tool].cost - (cur ? refund(cur as ModType) : 0);
       if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
+      popped.current.set(`${x},${y}`, performance.now());
       if (tool === "thruster") {
         // aim at the ship by default if it sits in a straight line
         const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
@@ -355,7 +380,7 @@ function Game() {
       <div
         ref={page}
         style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
-        className={`mx-auto max-w-5xl ${lost ? "page-sucked" : emerging ? "page-emerge" : portalFx ? `page-portal-${portalFx.kind}` : ""}`}
+        className={`mx-auto max-w-[1700px] ${lost ? "page-sucked" : emerging ? "page-emerge" : portalFx ? `page-portal-${portalFx.kind}` : ""}`}
       >
         <header className="mb-6 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
@@ -373,7 +398,7 @@ function Game() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">
+        <div className="grid gap-6 md:grid-cols-[minmax(220px,1fr)_auto_minmax(220px,1fr)] lg:gap-8">
           <aside className="pixel-panel float-in order-2 md:order-1">
             <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
             <div className="grid gap-2">
@@ -402,7 +427,7 @@ function Game() {
                 ref={canvas}
                 width={SIZE * TILE}
                 height={SIZE * TILE}
-                className="pixel-canvas pixel-frame w-[min(88vw,476px)] cursor-crosshair"
+                className="pixel-canvas pixel-frame w-[min(92vw,74vh,760px)] cursor-crosshair"
                 onMouseMove={(e) => (hover.current = cellAt(e))}
                 onMouseLeave={() => (hover.current = null)}
                 onClick={(e) => place(...cellAt(e))}
@@ -428,7 +453,7 @@ function Game() {
               {flying && <p className="flex-1 text-center text-lg text-accent">Ship is moving — you can still place modules.</p>}
               <button onClick={() => loadLevel(li)} className="pixel-btn">Restart</button>
             </div>
-            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click a thruster to turn it · Right-click a module to remove it</p>
+            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click a thruster (or press R) to turn it · Right-click a module to remove it</p>
           </div>
 
           <aside className="pixel-panel float-in order-3">
