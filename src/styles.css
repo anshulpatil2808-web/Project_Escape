@@ -210,3 +210,11 @@
 @keyframes holeGrow { from { transform: scale(0); } to { transform: scale(1); } }
 @keyframes spin { to { rotate: 360deg; } }
 .hole-text { position: relative; z-index: 2; text-align: center; animation: floatIn 600ms 2s steps(6) both; }
+.page-sucked { transform-origin: 50% 50vh; animation: pageSuck 2.4s steps(24) forwards; }
+@keyframes pageSuck { 0% { transform: none; } 25% { transform: rotate(-25deg) scale(.85) skewX(10deg); filter: saturate(2); }
+  100% { transform: rotate(-900deg) scale(0); filter: hue-rotate(200deg) contrast(2); opacity: 0; } }
+.hole-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 50; image-rendering: pixelated; }
+.hole-ui { position: fixed; inset: 0; z-index: 51; display: grid; place-items: end center; padding-bottom: 12vh; pointer-events: none; }
+.hole-ui > * { pointer-events: auto; }
+.hole-in { animation: holeIn 600ms steps(6) both; object-fit: cover; }
+.hole-text { background: oklch(0.05 0.02 300 / 0.75); border: 2px solid var(--hole-glow); padding: 1rem 1.5rem; }

@@ -20,15 +20,19 @@ export interface Level {
   time: number;
   /** max unused energy allowed in one network before it overloads */
   maxSurplus: number;
+  /** most modules allowed on the board */
+  maxMods: number;
+  /** bottom rows inside the event horizon: anything placed there is swallowed */
+  horizon: number;
 }
 
 export const SIZE = 7;
 
 export const LEVELS: Level[] = [
-  { name: "Escape Burn", brief: "Bring one thruster online.", budget: 8, goals: { thruster: 1 }, rocks: [[3, 3]], time: 60, maxSurplus: 3 },
-  { name: "First Contact", brief: "Two thrusters and a comms dish, on a tight budget.", budget: 15, goals: { thruster: 2, comms: 1 }, rocks: [[2, 2], [4, 4], [2, 4]], time: 75, maxSurplus: 3 },
-  { name: "Debris Field", brief: "Shield up and burn through the rubble.", budget: 18, goals: { shield: 2, thruster: 1 }, rocks: [[1, 3], [2, 3], [3, 3], [4, 3], [5, 1], [1, 5]], time: 90, maxSurplus: 2 },
-  { name: "Free Drift", brief: "Sandbox. Build anything you like.", budget: 999, goals: {}, rocks: [], time: 0, maxSurplus: 99 },
+  { name: "Escape Burn", brief: "Bring one thruster online.", budget: 8, goals: { thruster: 1 }, rocks: [[3, 3]], time: 60, maxSurplus: 3, maxMods: 4, horizon: 1 },
+  { name: "First Contact", brief: "Two thrusters and a comms dish, on a tight budget.", budget: 15, goals: { thruster: 2, comms: 1 }, rocks: [[2, 2], [4, 4], [2, 4]], time: 75, maxSurplus: 3, maxMods: 6, horizon: 1 },
+  { name: "Debris Field", brief: "Shield up and burn through the rubble.", budget: 18, goals: { shield: 2, thruster: 1 }, rocks: [[1, 3], [2, 3], [3, 3], [4, 3], [5, 1], [1, 5]], time: 90, maxSurplus: 2, maxMods: 8, horizon: 1 },
+  { name: "Free Drift", brief: "Sandbox. Build anything you like.", budget: 999, goals: {}, rocks: [], time: 0, maxSurplus: 99, maxMods: 99, horizon: 0 },
 ];
 
 export function makeGrid(level: Level): Cell[][] {
@@ -113,3 +117,6 @@ export function maxSurplus(g: Cell[][]) {
 
 /** Refund when a module is removed: half its cost, rounded down. */
 export const refund = (m: ModType) => Math.floor(MODS[m].cost / 2);
+
+export const moduleCount = (g: Cell[][]) => g.flat().filter((c) => c && c !== "rock").length;
+export const inHorizon = (level: Level, y: number) => y >= SIZE - level.horizon;

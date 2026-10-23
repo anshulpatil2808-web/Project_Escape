@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
 import { drawCell } from "@/game/sprites";
-import { LEVELS, MODS, SIZE, computePower, goalProgress, makeGrid, maxSurplus, refund, type Cell, type ModType } from "@/game/engine";
+import { LEVELS, MODS, SIZE, computePower, goalProgress, makeGrid, maxSurplus, moduleCount, inHorizon, refund, type Cell, type ModType } from "@/game/engine";
 import { play } from "@/game/sound";
+import { BlackHole } from "@/game/BlackHole";
 
 type Loss = "credits" | "time" | "overload";
 const LOSS_TEXT: Record<Loss, string> = {
@@ -80,14 +81,14 @@ function Game() {
     wasDone.current = done;
   }, [done]);
 
-  const state = useRef({ grid, powered });
-  state.current = { grid, powered };
+  const state = useRef({ grid, powered, level });
+  state.current = { grid, powered, level };
 
   useEffect(() => {
     const c = canvas.current!.getContext("2d")!;
     let raf = 0;
     const loop = (t: number) => {
-      const { grid, powered } = state.current;
+      const { grid, powered, level } = state.current;
       c.clearRect(0, 0, SIZE * TILE, SIZE * TILE);
       for (let y = 0; y < SIZE; y++)
         for (let x = 0; x < SIZE; x++) {
@@ -95,6 +96,11 @@ function Game() {
           c.fillRect(x * TILE, y * TILE, TILE, TILE);
           c.fillStyle = "rgba(120,160,255,0.18)";
           c.fillRect(x * TILE, y * TILE, 1, 1);
+          if (inHorizon(level, y)) {
+            c.fillStyle = `rgba(200,60,255,${0.12 + 0.08 * Math.sin(t / 300 + x)})`;
+            c.fillRect(x * TILE, y * TILE, TILE, TILE);
+            if (((x * 7 + Math.floor(t / 120)) % 5) === 0) { c.fillStyle = "rgba(255,120,255,0.5)"; c.fillRect(x * TILE + ((t / 40 + x * 3) % TILE), y * TILE + 8, 1, 1); }
+          }
         }
       for (let y = 0; y < SIZE; y++)
         for (let x = 0; x < SIZE; x++)
@@ -126,6 +132,13 @@ function Game() {
       if (!sandbox) setWallet((w) => w + refund(cur));
       play("remove");
     } else {
+      if (!sandbox && !cur && moduleCount(grid) >= level.maxMods) return play("warn");
+      if (inHorizon(level, y)) {
+        // swallowed by the event horizon: pay full price, keep nothing
+        if (!sandbox && MODS[tool].cost > wallet) return play("warn");
+        if (!sandbox) setWallet((w) => w - MODS[tool].cost);
+        return play("remove");
+      }
       const price = MODS[tool].cost - (cur && cur !== "rock" ? refund(cur) : 0);
       if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
@@ -146,7 +159,7 @@ function Game() {
   return (
     <main className="relative min-h-screen px-4 py-8 text-foreground">
       <Starfield />
-      <div className="mx-auto max-w-5xl">
+      <div className={`mx-auto max-w-5xl ${lost ? "page-sucked" : ""}`}>
         <header className="mb-6 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Build fast. Spend wisely. Don't fall into the black hole.</p>
@@ -181,7 +194,7 @@ function Game() {
                 <span className={overloaded ? "timer-danger" : "text-primary"}>SURGE {surplus}/{level.maxSurplus}</span>
               </div>
             )}
-            <div className={`board-wrap ${lost ? "board-sucked" : ""}`}>
+            <div className="board-wrap">
             <canvas
               ref={canvas}
               width={SIZE * TILE}
@@ -218,6 +231,8 @@ function Game() {
                 <li>▸ Every placement spends credits. Removing refunds only half.</li>
                 <li>▸ Spare energy over {level.maxSurplus} in one network overloads in 3s.</li>
                 <li>▸ Finish before the countdown ends.</li>
+                <li>▸ Max {level.maxMods} modules on the board ({moduleCount(grid)} used).</li>
+                <li>▸ The glowing bottom row is the event horizon. Anything placed there is swallowed and the credits are lost.</li>
               </ul>
             )}
             {done && (
@@ -232,17 +247,7 @@ function Game() {
           </aside>
         </div>
       </div>
-      {lost && (
-        <div className="hole-overlay" role="alertdialog" aria-label="Lost to the black hole">
-          <div className="hole-disk" />
-          <div className="hole-core absolute" />
-          <div className="hole-text">
-            <p className="font-pixel text-lg text-hole-glow md:text-2xl">SPAGHETTIFIED</p>
-            <p className="mt-3 text-2xl text-foreground">{LOSS_TEXT[lost]} The black hole took your station.</p>
-            <button onClick={() => loadLevel(li)} className="pixel-btn pixel-btn-active mt-5">Try again</button>
-          </div>
-        </div>
-      )}
+      {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => loadLevel(li)} />}
     </main>
   );
 }
