@@ -1,6 +1,7 @@
 # Roadmap
 - [ ] Replace bumper, anchor, asteroid and thruster artwork with uploaded images
-- [ ] Removing a module leaves coins unchanged; rotation remains free at zero coins
+- [ ] Removing a module restores its full cost (2 → 0 → 2); rotation stays free
+- [ ] Check all levels and fix visible glitches
 - [ ] Meaningful rotation for anchor, bumper and thruster, with touch controls and rule tests
 - [ ] Verify automatic level travel and whole-site white-hole emergence
 - [x] Electric glowing box behind SPAGHETTIFIED
