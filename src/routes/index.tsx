@@ -351,7 +351,7 @@ function Game() {
       next[y]![x] = tool;
       popped.current.set(`${x},${y}`, performance.now());
       setSelected([x, y]);
-      if (tool !== "erase") {
+      {
         // aim at the ship by default if it sits in a straight line
         const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
         setDirs((ds) => ds.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? d : v))));

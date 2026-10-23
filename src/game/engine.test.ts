@@ -14,7 +14,7 @@ describe("drift rules", () => {
     expect(5 + refund(module)).toBe(5);
   });
   it.each([0, 1, 2, 3])("anchor direction %i holds only its facing square", (dir) => {
-    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]] as const;
     const vector = vectors[dir];
     if (!vector) throw new Error("missing direction");
     const { g, d } = build(0, [[3, 3, "shield", dir]]);
@@ -22,7 +22,7 @@ describe("drift rules", () => {
     expect(step(g, d, LEVELS[0]!, [3 - vector[0], 3 - vector[1]], [1, 0]).event).not.toBe("held");
   });
   it.each([0, 1, 2, 3])("bumper direction %i stops its front and reflects its back", (dir) => {
-    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]] as const;
     const vector = vectors[dir];
     if (!vector) throw new Error("missing direction");
     const [dx, dy] = vector;
