@@ -71,19 +71,14 @@ describe("drift rules", () => {
     expect(LEVELS.map((level) => level.time)).toEqual([30, 50, 70, 90, 110]);
   });
   it("every mission is solvable within its budget", () => {
-    const solutions: Mod[][] = [
-      [[0, 2, "thruster", 1]],
-      [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
-      [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
-      [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
-      [[5, 1, "thruster", 3], [2, 2, "thruster", 3], [4, 5, "thruster", 0]],
-    ];
-    solutions.forEach((mods, li) => {
+    SOLUTIONS.forEach((mods, li) => {
       const { g, d } = build(li, mods);
-      const cost = mods.reduce((s, m) => s + (m[2] === "thruster" ? 2 : 1), 0);
-      expect(cost).toBeLessThanOrEqual(LEVELS[li]!.budget);
+      expect(costOf(mods)).toBeLessThanOrEqual(LEVELS[li]!.budget);
       expect(simulate(g, d, LEVELS[li]!)).toBe("portal");
     });
+  });
+  it("recorded solutions cost exactly the cheapest the solver found", () => {
+    expect(SOLUTIONS.map(costOf)).toEqual([2, 3, 3, 3, 5]);
   });
 });
 
