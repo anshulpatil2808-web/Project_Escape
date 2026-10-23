@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
 import { Button } from "@/components/ui/button";
 import { drawDirectionalCell, drawCell } from "@/game/sprites";
-import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
+import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, thrustPush, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
@@ -62,6 +62,21 @@ function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: nu
   const [dx, dy] = DIRS[dir]!;
   c.fillRect(x + 7 + dx * 6, y + 7 + dy * 6, 2, 2);
   void DIR_NAMES;
+}
+
+/** Bright chevrons marching the way the ship will be sent. */
+function drawPushArrow(c: CanvasRenderingContext2D, x: number, y: number, dir: number, t: number, alpha = 1) {
+  const [dx, dy] = DIRS[dir]!;
+  const pulse = Math.floor(t / 150) % 3;
+  for (let i = 0; i < 3; i++) {
+    const reach = 7 + i * 4 + (i === pulse ? 1 : 0);
+    const tx = Math.round(x + 8 + dx * reach), ty = Math.round(y + 8 + dy * reach);
+    const bx = tx - dx, by = ty - dy;
+    c.fillStyle = `rgba(255,224,102,${(0.95 - i * 0.25) * alpha})`;
+    c.fillRect(tx, ty, 1, 1);
+    if (dx) { c.fillRect(bx, by - 1, 1, 1); c.fillRect(bx, by + 1, 1, 1); }
+    else { c.fillRect(bx - 1, by, 1, 1); c.fillRect(bx + 1, by, 1, 1); }
+  }
 }
 
 /** Predict where the ship goes with the current layout (for the dotted guide). */
@@ -237,6 +252,13 @@ function Game() {
           else drawCell(c, cell, x * TILE, y * TILE, t + x * 37 + y * 53, true);
           c.restore();
         }
+      // yellow arrows showing the way each thruster sends the ship
+      for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++) {
+          if (grid[y]![x] !== "thruster") continue;
+          const push = thrustPush(dirs[y]![x]!, x, y, ship);
+          if (push !== null) drawPushArrow(c, x * TILE, y * TILE, push, t, flying ? 0.4 : 1);
+        }
       // anchor tether: pulsing beam to the ship it is holding
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
         const ax = ship[0] + dx, ay = ship[1] + dy;
@@ -313,6 +335,8 @@ function Game() {
         const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
         else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
+        const gp = tl === "thruster" ? thrustPush(d, h[0], h[1], ship) : null;
+        if (gp !== null) drawPushArrow(c, h[0] * TILE, h[1] * TILE, gp, t, 0.7);
         c.globalAlpha = 1;
       }
       if (h) {
@@ -506,7 +530,7 @@ function Game() {
             <h2 className="panel-title font-pixel mt-4">HOW IT WORKS</h2>
             <ol className="mission-rules">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
+              <li>2. A thruster beside the ship, lined up with it, sends the ship the way its yellow arrows point. Click any module to turn it.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
               <li>4. No friction: once moving, the ship glides until it hits something.</li>
               <li>5. When the ship stops, the black hole pulls it down one square at a time.</li>

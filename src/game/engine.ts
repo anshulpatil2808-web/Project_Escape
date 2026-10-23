@@ -13,7 +13,7 @@ export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Thruster", cost: 2, desc: "Place it next to the ship, in line with it, to push the ship away. Click it to turn it." },
+  thruster: { name: "Thruster", cost: 2, desc: "Place it beside the ship, in line with it. Yellow arrows show which way it sends the ship. Click it to turn it." },
   shield: { name: "Anchor", cost: 3, desc: "Its glowing face holds the ship in the square it points at." },
   comms: { name: "Bumper", cost: 1, desc: "The padded face stops the ship; the other sides bounce it back." },
 };
@@ -54,11 +54,11 @@ export function facesShip(dirs: number[][], x: number, y: number, ship: Vec) {
   const direction = DIRS[dirs[y]?.[x] ?? 1];
   return !!direction && x + direction[0] === ship[0] && y + direction[1] === ship[1];
 }
-/** The way this thruster sends the ship (0 up, 1 right, 2 down, 3 left), or null when it can't drive it. */
-export function thrustPush(dirs: number[][], x: number, y: number, ship: Vec): number | null {
+/** The way a thruster facing `dir` sends the ship (0 up, 1 right, 2 down, 3 left), or null when it can't drive it. */
+export function thrustPush(dir: number, x: number, y: number, ship: Vec): number | null {
   const ax = ship[0] - x, ay = ship[1] - y;
   if (Math.abs(ax) + Math.abs(ay) !== 1) return null;
-  const [dx, dy] = DIRS[dirs[y]?.[x] ?? 1]!;
+  const [dx, dy] = DIRS[dir] ?? DIRS[1]!;
   if (!(dx === ax && dy === ay) && !(dx === -ax && dy === -ay)) return null;
   return DIRS.findIndex(([ux, uy]) => ux === ax && uy === ay);
 }
