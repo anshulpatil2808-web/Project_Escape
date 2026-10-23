@@ -285,3 +285,12 @@
 .hud-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .9rem; background: oklch(0.05 0.02 300 / .8); border: 2px solid var(--border); padding: .35rem .65rem; }
 .level-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
 @media (min-width: 768px) { .level-row { display: flex; flex-wrap: wrap; justify-content: center; } }
+
+/* dancing pixel aliens fill the space under the board */
+.alien-stage { display: flex; align-items: flex-end; justify-content: center; gap: .75rem; width: 100%; margin-top: .9rem; padding: .6rem .8rem; border: 3px solid var(--border); background: var(--card); }
+.aliens { display: flex; flex: 1; align-items: flex-end; justify-content: center; gap: clamp(.5rem, 2vw, 1.4rem); }
+.alien { animation: alienHop .9s steps(4) infinite; }
+@keyframes alienHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } 60% { transform: translateY(-2px); } }
+.alien-still { animation-play-state: paused; }
+.alien-toggle { min-width: 44px; }
+@media (prefers-reduced-motion: reduce) { .alien { animation: none; } }

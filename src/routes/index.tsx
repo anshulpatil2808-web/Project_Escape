@@ -11,6 +11,7 @@ import { BlackHole } from "@/game/BlackHole";
 import { WhiteHole } from "@/game/WhiteHole";
 import { ExitScreen } from "@/game/ExitScreen";
 import { UfoCapture } from "@/game/UfoCapture";
+import { AlienDance } from "@/game/AlienDance";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
@@ -523,6 +524,7 @@ function Game() {
               <Button variant="pixel" disabled={locked} onClick={() => loadLevel(li)} className="pixel-btn">Restart</Button>
             </div>
             <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
+            <AlienDance />
           </div>
 
           <aside className="pixel-panel side-panel float-in order-3">

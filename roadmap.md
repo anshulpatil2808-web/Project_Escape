@@ -26,6 +26,7 @@
 - [x] Remove the module direction panel (rotate by clicking a placed module or pressing R)
 - [x] Clock now runs the whole time a mission is on screen (planning included), not only in flight
 - [x] Timers: +20s per mission (20/40/60/80/100s)
-- [ ] Use the newly uploaded picture as the ship the thrusters, anchor and bumper move
-- [ ] Even-sized, readable level and module panels on mobile and desktop
-- [ ] A module's visible turn should point the way it sends the ship
+- [x] Use the newly uploaded picture as the ship the thrusters, anchor and bumper move
+- [x] Even-sized, readable level and module panels on mobile and desktop
+- [x] A module's visible turn should point the way it sends the ship
+- [ ] Dancing pixel aliens filling the empty space under the board
