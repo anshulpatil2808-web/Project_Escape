@@ -97,7 +97,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
           hitAt = lt; play("remove");
           for (let i = 0; i < 24; i++) debris.push({ x: 15, y: 45, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 42 });
         }
-        if (!drawArtwork(c, "rock", ax - 5, ay - 5, 12)) { px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); }
+        if (!drawArtwork(c, "rock", ax - 8, ay - 8, 16)) { px(ax - 5, ay - 5, 11, 11, "#5a4838"); px(ax - 3, ay - 7, 7, 14, "#5a4838"); px(ax - 4, ay - 3, 3, 3, "#9a7c58"); }
       }
       for (let i = debris.length - 1; i >= 0; i--) {
         const d = debris[i]!; d.x += d.vx; d.y += d.vy; d.vy += 0.05; d.l--;
@@ -108,7 +108,6 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const since = hitAt === null ? -1 : lt - hitAt;
       const bump = since >= 0 ? 14 * Math.exp(-since * 4) * Math.min(1, since * 12) : 0;
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
-      if (since >= 0 && since < 0.05) { c.fillStyle = "rgba(255,240,200,0.22)"; c.fillRect(0, 0, W, H); }
       const climb = launchAt.current ? Math.min(52, lt * lt * 45) - bump : Math.sin(now / 600) * 0.5;
       const rx = 11 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 30 - climb + shake;
       // rocket: the uploaded pixel-art fighter (simple silhouette until it loads)
