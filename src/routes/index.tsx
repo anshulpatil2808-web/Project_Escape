@@ -328,7 +328,7 @@ function Game() {
         </header>
 
         <p className="goal-line mx-auto mb-4 max-w-2xl text-center text-xl">
-          <span className="font-pixel text-xs text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
+          <span className="font-pixel text-sm text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
         </p>
         <div className="mb-4 flex flex-wrap justify-center gap-2">
           {LEVELS.map((l, i) => (
@@ -340,7 +340,7 @@ function Game() {
 
         <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">
           <aside className="pixel-panel float-in order-2 md:order-1">
-            <h2 className="font-pixel mb-3 text-xs text-accent">MODULES</h2>
+            <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
             <div className="grid gap-2">
               {TYPES.map((t) => (
                 <button key={t} onClick={() => setTool(t)} className={`pixel-btn text-left ${tool === t ? "pixel-btn-active" : ""}`}>
@@ -356,7 +356,7 @@ function Game() {
           </aside>
 
           <div className="order-1 flex flex-col items-center md:order-2">
-            <div className="mb-3 flex w-full justify-between font-pixel text-xs">
+            <div className="mb-3 flex w-full justify-between font-pixel text-sm">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
             </div>
@@ -388,18 +388,18 @@ function Game() {
             </div>
             <div className="mt-3 flex w-full gap-2">
               {!flying && !won && (
-                <button onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-xs">▶ LAUNCH</button>
+                <button onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-sm">▶ LAUNCH</button>
               )}
-              {flying && <p className="flex-1 text-center text-lg text-accent">In flight. You can still place modules!</p>}
+              {flying && <p className="flex-1 text-center text-lg text-accent">Ship is moving — you can still place modules.</p>}
               <button onClick={() => loadLevel(li)} className="pixel-btn">Restart</button>
             </div>
-            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots = predicted path · click a thruster to rotate · right-click to remove</p>
+            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click a thruster to turn it · Right-click a module to remove it</p>
           </div>
 
           <aside className="pixel-panel float-in order-3">
-            <h2 className="font-pixel mb-2 text-xs text-accent">MISSION</h2>
+            <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
-            <h2 className="font-pixel mb-2 mt-4 text-xs text-accent">HOW IT WORKS</h2>
+            <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
             <ol className="space-y-1 text-lg text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
               <li>· A thruster only fires the ship if its nozzle points at it. Click to rotate.</li>
@@ -411,7 +411,7 @@ function Game() {
             </ol>
             {won && li === LEVELS.length - 1 && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
-                <p className="font-pixel text-xs text-success">ESCAPED!</p>
+                <p className="font-pixel text-sm text-success">ESCAPED!</p>
                 <p className="mt-2 text-lg">Build anything you like, or start again from Training.</p>
                 <button onClick={() => loadLevel(0)} className="pixel-btn mt-3 w-full">Play again</button>
                 {li < LEVELS.length - 1 && (
