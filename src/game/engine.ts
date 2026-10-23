@@ -16,15 +16,19 @@ export interface Level {
   budget: number;
   goals: Partial<Record<ModType, number>>;
   rocks: [number, number][];
+  /** seconds before the black hole swallows the station */
+  time: number;
+  /** max unused energy allowed in one network before it overloads */
+  maxSurplus: number;
 }
 
 export const SIZE = 7;
 
 export const LEVELS: Level[] = [
-  { name: "Ignition", brief: "Bring one thruster online.", budget: 8, goals: { thruster: 1 }, rocks: [[3, 3]] },
-  { name: "First Contact", brief: "Two thrusters and a comms dish, on a tight budget.", budget: 15, goals: { thruster: 2, comms: 1 }, rocks: [[2, 2], [4, 4], [2, 4]] },
-  { name: "Debris Field", brief: "Shield up and burn through the rubble.", budget: 18, goals: { shield: 2, thruster: 1 }, rocks: [[1, 3], [2, 3], [3, 3], [4, 3], [5, 1], [1, 5]] },
-  { name: "Open Orbit", brief: "Sandbox. Build anything you like.", budget: 999, goals: {}, rocks: [] },
+  { name: "Escape Burn", brief: "Bring one thruster online.", budget: 8, goals: { thruster: 1 }, rocks: [[3, 3]], time: 60, maxSurplus: 3 },
+  { name: "First Contact", brief: "Two thrusters and a comms dish, on a tight budget.", budget: 15, goals: { thruster: 2, comms: 1 }, rocks: [[2, 2], [4, 4], [2, 4]], time: 75, maxSurplus: 3 },
+  { name: "Debris Field", brief: "Shield up and burn through the rubble.", budget: 18, goals: { shield: 2, thruster: 1 }, rocks: [[1, 3], [2, 3], [3, 3], [4, 3], [5, 1], [1, 5]], time: 90, maxSurplus: 2 },
+  { name: "Free Drift", brief: "Sandbox. Build anything you like.", budget: 999, goals: {}, rocks: [], time: 0, maxSurplus: 99 },
 ];
 
 export function makeGrid(level: Level): Cell[][] {
@@ -80,3 +84,32 @@ export function goalProgress(g: Cell[][], level: Level, powered: Set<string>) {
   const done = entries.length > 0 && entries.every(([t, n]) => (counts[t] ?? 0) >= n) && spent(g) <= level.budget;
   return { counts, done };
 }
+
+
+/** Largest unused energy in any powered network. */
+export function maxSurplus(g: Cell[][]) {
+  const seen = new Set<string>();
+  let worst = 0;
+  for (let y = 0; y < SIZE; y++)
+    for (let x = 0; x < SIZE; x++) {
+      const c = g[y]![x];
+      if (!c || c === "rock" || seen.has(`${x},${y}`)) continue;
+      let gen = 0, use = 0;
+      const stack = [[x, y]];
+      seen.add(`${x},${y}`);
+      while (stack.length) {
+        const [cx, cy] = stack.pop() as [number, number];
+        const m = g[cy]![cx] as ModType;
+        gen += MODS[m].gen; use += MODS[m].use;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const nx = cx + dx, ny = cy + dy, n = g[ny]?.[nx];
+          if (n && n !== "rock" && !seen.has(`${nx},${ny}`)) { seen.add(`${nx},${ny}`); stack.push([nx, ny]); }
+        }
+      }
+      worst = Math.max(worst, gen - use);
+    }
+  return worst;
+}
+
+/** Refund when a module is removed: half its cost, rounded down. */
+export const refund = (m: ModType) => Math.floor(MODS[m].cost / 2);

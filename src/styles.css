@@ -185,3 +185,28 @@
 .pixel-btn:hover { transform: translate(-1px, -1px); border-color: var(--primary); }
 .pixel-btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .pixel-btn-active { border-color: var(--primary); color: var(--primary); background: oklch(0.88 0.14 200 / 0.12); }
+
+:root { --hole: oklch(0.05 0.02 300); --hole-glow: oklch(0.7 0.25 320); }
+@theme inline { --color-hole-glow: var(--hole-glow); }
+
+.title-glitch { animation: glitch 3s steps(1) infinite; text-shadow: 2px 0 var(--hole-glow), -2px 0 var(--primary); }
+@keyframes glitch { 0%,92%,100% { transform: none; } 93% { transform: translate(2px,-1px) skewX(8deg); } 96% { transform: translate(-2px,1px); } }
+.float-in { animation: floatIn 600ms steps(6) both; }
+@keyframes floatIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.timer-danger { animation: danger 0.5s steps(2) infinite; color: var(--destructive); }
+@keyframes danger { 50% { opacity: 0.4; } }
+.board-wrap { position: relative; transition: transform 300ms; }
+.board-sucked { animation: suck 2.6s cubic-bezier(.6,0,.9,.4) forwards; }
+@keyframes suck { 0% { transform: none; filter: none; } 30% { transform: rotate(-20deg) scale(.9); } 100% { transform: rotate(-720deg) scale(0); filter: hue-rotate(160deg) blur(2px); opacity: 0; } }
+.hole-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: radial-gradient(circle, var(--hole) 0%, oklch(0.05 0.02 300 / .85) 45%, transparent 75%); animation: holeIn 1s ease-out both; }
+@keyframes holeIn { from { opacity: 0; } to { opacity: 1; } }
+.hole-core { width: 220px; height: 220px; border-radius: 50%; background: var(--hole);
+  box-shadow: 0 0 0 6px var(--hole-glow), 0 0 60px 20px var(--hole-glow), inset 0 0 40px var(--hole-glow);
+  animation: holeGrow 2.6s ease-in both; }
+.hole-disk { position: absolute; width: 420px; height: 420px; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, var(--hole-glow), var(--accent), transparent 40%, var(--primary), transparent 70%);
+  mask: radial-gradient(circle, transparent 52%, black 54%, transparent 70%);
+  animation: spin 1.2s linear infinite, holeGrow 2.6s ease-in both; image-rendering: pixelated; }
+@keyframes holeGrow { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes spin { to { rotate: 360deg; } }
+.hole-text { position: relative; z-index: 2; text-align: center; animation: floatIn 600ms 2s steps(6) both; }
