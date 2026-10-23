@@ -91,6 +91,14 @@ function Game() {
   const [started, setStarted] = useState(false);
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const page = useRef<HTMLDivElement>(null);
+  const [portalFx, setPortalFx] = useState<{ kind: "enter" | "exit"; origin: string } | null>(null);
+  // where a grid cell sits inside the page wrapper, used as the warp's vanishing point
+  const cellOrigin = ([x, y]: Vec) => {
+    const c = canvas.current?.getBoundingClientRect(), w = page.current?.getBoundingClientRect();
+    if (!c || !w) return "50% 50%";
+    return `${c.left - w.left + ((x + 0.5) / SIZE) * c.width}px ${c.top - w.top + ((y + 0.5) / SIZE) * c.height}px`;
+  };
   const hover = useRef<[number, number] | null>(null);
   const trail = useRef<Vec[]>([]);
 
@@ -117,7 +125,15 @@ function Game() {
         setWon(true); setFlying(false); play("win");
         warp.current = { at: performance.now(), kind: "out" };
         // ship passes through the portal, then the next level starts on its own
-        if (li < LEVELS.length - 1) setTimeout(() => { loadLevel(li + 1); warp.current = { at: performance.now(), kind: "in" }; play("power"); }, 1600);
+        if (li < LEVELS.length - 1) {
+          setTimeout(() => setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }), 700);
+          setTimeout(() => {
+            loadLevel(li + 1);
+            setPortalFx({ kind: "exit", origin: cellOrigin(LEVELS[li + 1]!.ship) });
+            warp.current = { at: performance.now(), kind: "in" }; play("power");
+            setTimeout(() => setPortalFx(null), 1100);
+          }, 1600);
+        }
       }
       else if (r.event === "blackhole") lose("blackhole");
       else if (r.event === "overload") lose("overload");
@@ -294,7 +310,11 @@ function Game() {
   return (
     <main className="relative min-h-screen px-4 py-8 text-foreground">
       <Starfield />
-      <div className={`mx-auto max-w-5xl ${lost ? "page-sucked" : emerging ? "page-emerge" : ""}`}>
+      <div
+        ref={page}
+        style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
+        className={`mx-auto max-w-5xl ${lost ? "page-sucked" : emerging ? "page-emerge" : portalFx ? `page-portal-${portalFx.kind}` : ""}`}
+      >
         <header className="mb-6 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Your ship has no brakes. The black hole is hungry. Steer it home.</p>

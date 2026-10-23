@@ -250,3 +250,13 @@
 .hud-tl { left: 20px; } .hud-tr { right: 20px; color: var(--accent); }
 .warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 40; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
   text-shadow: 0 0 12px var(--primary); animation: floatIn 400ms steps(4) both, danger .5s steps(2) infinite; pointer-events: none; }
+
+/* level-to-level warp: the whole page dives into the portal, then unfolds from the next start cell */
+.page-portal-enter { animation: portalEnter 900ms cubic-bezier(.6,0,.9,.4) both; }
+@keyframes portalEnter { 0% { transform: none; filter: none; }
+  40% { transform: rotate(30deg) scale(.7); filter: hue-rotate(60deg) brightness(1.4); }
+  100% { transform: rotate(360deg) scale(0); filter: hue-rotate(180deg) brightness(3) blur(2px); opacity: 0; } }
+.page-portal-exit { animation: portalExit 1000ms steps(14) both; }
+@keyframes portalExit { 0% { transform: rotate(-360deg) scale(0); filter: brightness(4) hue-rotate(-120deg); opacity: 0; }
+  60% { transform: rotate(10deg) scale(1.05); filter: brightness(1.4); opacity: 1; }
+  100% { transform: none; filter: none; } }
