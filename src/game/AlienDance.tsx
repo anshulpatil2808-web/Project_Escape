@@ -14,6 +14,7 @@ export function AlienDance() {
   const [paused, setPaused] = useState(false);
   return (
     <div className="alien-stage">
+      <span aria-hidden />
       <div className="aliens">
         {SHAPES.map((shape, i) => (
           <svg
