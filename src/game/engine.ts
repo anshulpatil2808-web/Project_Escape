@@ -13,7 +13,7 @@ export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Thruster", cost: 2, desc: "Place it next to the ship, in line with it, to push the ship away. Click it to turn it." },
+  thruster: { name: "Thruster", cost: 2, desc: "Attach beside the ship with exhaust pointing away from it. Thrust moves the ship opposite the flame." },
   shield: { name: "Anchor", cost: 3, desc: "Its glowing face holds the ship in the square it points at." },
   comms: { name: "Bumper", cost: 1, desc: "The padded face stops the ship; the other sides bounce it back." },
 };
@@ -44,7 +44,7 @@ export const LEVELS: Level[] = [
 
 export function makeGrid(level: Level): Cell[][] {
   const g: Cell[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
-  level.rocks.forEach(([x, y]) => (g[y]![x] = "rock"));
+  level.rocks.forEach(([x, y]) => { const row = g[y]; if (row) row[x] = "rock"; });
   return g;
 }
 export const makeDirs = () => Array.from({ length: SIZE }, () => Array(SIZE).fill(1) as number[]);
@@ -55,6 +55,12 @@ export function facesShip(dirs: number[][], x: number, y: number, ship: Vec) {
   return !!direction && x + direction[0] === ship[0] && y + direction[1] === ship[1];
 }
 const N4: Vec[] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+/** Thruster directions name the exhaust, so thrust must point toward the adjacent ship. */
+export function thrusterDrivesShip(dirs: number[][], x: number, y: number, ship: Vec) {
+  const exhaust = DIRS[dirs[y]?.[x] ?? 1];
+  return !!exhaust && x - exhaust[0] === ship[0] && y - exhaust[1] === ship[1];
+}
 
 export function neighbours(g: Cell[][], [sx, sy]: Vec) {
   return N4.map(([dx, dy]) => ({ x: sx + dx, y: sy + dy, c: g[sy + dy]?.[sx + dx] ?? null })).filter((n) => isMod(n.c));
@@ -72,14 +78,8 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
   if (adj.some((n) => n.c === "shield" && facesShip(dirs, n.x, n.y, ship))) return { ship, vel: [0, 0], event: "held" };
 
   let v: Vec = vel;
-  // 3. Thrusters lined up with the ship (blast toward it, or exhaust pointing away like an engine)
-  //    push it forward, away from the thruster. Sideways thrusters do nothing.
-  const firing = adj.filter((n) => {
-    if (n.c !== "thruster") return false;
-    const [dx, dy] = DIRS[dirs[n.y]![n.x]!]!;
-    const ax = sx - n.x, ay = sy - n.y;
-    return (dx === ax && dy === ay) || (dx === -ax && dy === -ay);
-  });
+  // 3. An attached engine drives the ship opposite its exhaust; reversed/sideways engines do nothing.
+  const firing = adj.filter((n) => n.c === "thruster" && thrusterDrivesShip(dirs, n.x, n.y, ship));
   if (firing.length) v = firing.reduce<Vec>((a, n) => [a[0] + (sx - n.x), a[1] + (sy - n.y)], [0, 0]);
   // 4. Not moving at all? The black hole pulls it down
   if (v[0] === 0 && v[1] === 0) v = [0, 1];

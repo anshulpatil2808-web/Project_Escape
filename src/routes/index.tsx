@@ -311,7 +311,8 @@ function Game() {
       if (h && tl !== "erase" && !grid[h[1]]?.[h[0]] && h[1] < HORIZON_Y && !(h[0] === ship[0] && h[1] === ship[1])) {
         // ghost preview of what a click will place (thrusters pre-aimed at the ship)
         c.globalAlpha = 0.4 + 0.15 * Math.sin(t / 150);
-        const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
+        const facing = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
+        const d = tl === "thruster" ? (facing + 2) % 4 : facing;
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
         else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
         c.globalAlpha = 1;
@@ -373,8 +374,9 @@ function Game() {
       popped.current.set(`${x},${y}`, performance.now());
       setSelected([x, y]);
       {
-        // aim at the ship by default if it sits in a straight line
-        const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
+        // Engines exhaust away from the ship; other active faces point toward it.
+        const facing = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
+        const d = tool === "thruster" ? (facing + 2) % 4 : facing;
         setDirs((ds) => ds.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? d : v))));
       }
       if (!sandbox) {
@@ -462,7 +464,7 @@ function Game() {
             </div>
             {selected && grid[selected[1]]?.[selected[0]] && grid[selected[1]]?.[selected[0]] !== "rock" && (
               <div className="mt-4 border-t border-border pt-3">
-                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
+                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {grid[selected[1]]?.[selected[0]] === "thruster" ? "EXHAUST " : ""}{DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Module direction">
                   {[ArrowUp, ArrowRight, ArrowDown, ArrowLeft].map((Icon, dir) => (
                     <Button key={dir} variant="pixel" size="icon" disabled={locked || won} aria-label={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} title={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} aria-pressed={dirs[selected[1]]?.[selected[0]] === dir} className={dirs[selected[1]]?.[selected[0]] === dir ? "pixel-btn-active" : ""} onClick={() => rotateModule(selected, dir)}><Icon /></Button>
@@ -522,7 +524,7 @@ function Game() {
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
             <ol className="mission-rules text-xl text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
+              <li>2. Attach a thruster next to the ship with its flame pointing away. The ship travels opposite the exhaust. Turn modules to change direction.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
               <li>4. No friction: once moving, the ship glides until it hits something.</li>
               <li>5. When the ship stops, the black hole pulls it down one square at a time.</li>
