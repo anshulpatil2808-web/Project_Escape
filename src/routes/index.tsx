@@ -2,8 +2,10 @@ import { WarpTunnel } from "@/game/WarpTunnel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
-import { drawCell } from "@/game/sprites";
-import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
+import { Button } from "@/components/ui/button";
+import { RotateCw, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
+import { drawDirectionalCell, drawCell } from "@/game/sprites";
+import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
@@ -89,6 +91,8 @@ function Game() {
   const [lost, setLost] = useState<Loss | null>(null);
   const [emerging, setEmerging] = useState(false);
   const [dirs, setDirs] = useState<number[][]>(makeDirs);
+  const [selected, setSelected] = useState<Vec | null>(null);
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [started, setStarted] = useState(false);
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -106,7 +110,10 @@ function Game() {
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
-  const live = { grid, dirs, ship, vel, level, flying, li, won, tool };
+  const locked = !started || !!lost || emerging || !!portalFx || tunnel;
+  const live = { grid, dirs, ship, vel, level, flying, li, won, tool, locked };
+  const queueTransition = (action: () => void, delay: number) => { transitionTimers.current.push(setTimeout(action, delay)); };
+  useEffect(() => () => transitionTimers.current.forEach(clearTimeout), []);
   const state = useRef(live);
   state.current = live;
 
@@ -131,16 +138,16 @@ function Game() {
         // ship passes through the portal, then the next level starts on its own
         if (li < LEVELS.length - 1) {
           // 1) page dives into the portal  2) hyperspace tunnel  3) page unfolds from the next start cell
-          setTimeout(() => { setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }); setTunnel(true); }, 650);
-          setTimeout(() => {
-            loadLevel(li + 1);
+          queueTransition(() => { setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }); setTunnel(true); }, 650);
+          queueTransition(() => {
+            loadLevel(li + 1, true);
             setPortalFx({ kind: "hidden", origin: "50% 50%" });
           }, 1350);
-          setTimeout(() => {
-            setPortalFx({ kind: "exit", origin: cellOrigin(LEVELS[li + 1]!.ship) });
+          queueTransition(() => {
+            setPortalFx({ kind: "exit", origin: cellOrigin(LEVELS[li + 1]?.ship ?? [3, 2]) });
             warp.current = { at: performance.now(), kind: "in" }; play("power");
           }, 1750);
-          setTimeout(() => { setPortalFx(null); setTunnel(false); }, 2600);
+          queueTransition(() => { setPortalFx(null); setTunnel(false); }, 2600);
         }
       }
       else if (r.event === "blackhole") lose("blackhole");
@@ -208,13 +215,14 @@ function Game() {
           c.save();
           if (k !== 1) { c.translate(x * TILE + 8, y * TILE + 8); c.scale(k, k); c.translate(-(x * TILE + 8), -(y * TILE + 8)); }
           if (cell === "thruster") drawThruster(c, x * TILE, y * TILE, dirs[y]![x]!, t + x * 50);
+          else if (cell === "shield" || cell === "comms") drawDirectionalCell(c, cell, x * TILE, y * TILE, t + x * 37 + y * 53, dirs[y]?.[x] ?? 1);
           else drawCell(c, cell, x * TILE, y * TILE, t + x * 37 + y * 53, true);
           c.restore();
         }
       // anchor tether: pulsing beam to the ship it is holding
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
         const ax = ship[0] + dx, ay = ship[1] + dy;
-        if (grid[ay]?.[ax] !== "shield") continue;
+        if (grid[ay]?.[ax] !== "shield" || !facesShip(dirs, ax, ay, ship)) continue;
         const on = Math.floor(t / 90) % 2;
         c.fillStyle = on ? "#7ff0ff" : "#2fa8c8";
         for (let i = 2; i < 14; i += 3) c.fillRect(ship[0] * TILE + 8 + dx * i - (dy ? 0 : 0), ship[1] * TILE + 8 + dy * i, 1, 1);
@@ -284,7 +292,7 @@ function Game() {
         c.globalAlpha = 0.4 + 0.15 * Math.sin(t / 150);
         const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
-        else drawCell(c, tl, h[0] * TILE, h[1] * TILE, t, true);
+        else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
         c.globalAlpha = 1;
       }
       if (h) {
@@ -298,15 +306,22 @@ function Game() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // R rotates the thruster under the cursor
+  const rotateModule = (cell: Vec, direction?: number) => {
+    const [x, y] = cell;
+    const current = state.current;
+    const module = current.grid[y]?.[x];
+    if (current.locked || current.won || !module || module === "rock") return;
+    setSelected(cell);
+    popped.current.set(`${x},${y}`, performance.now());
+    setDirs((d) => d.map((row, yy) => row.map((v, xx) => xx === x && yy === y ? direction ?? (v + 1) % 4 : v)));
+    play("warn");
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "r" && e.key !== "R") return;
-      const h = hover.current;
-      if (!h || state.current.grid[h[1]]?.[h[0]] !== "thruster") return;
-      popped.current.set(`${h[0]},${h[1]}`, performance.now());
-      setDirs((d) => d.map((r, yy) => r.map((v, xx) => (xx === h[0] && yy === h[1] ? (v + 1) % 4 : v))));
-      play("warn");
+      if (e.key.toLowerCase() !== "r" || e.repeat) return;
+      const cell = hover.current;
+      if (cell) rotateModule(cell);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -318,14 +333,11 @@ function Game() {
   };
 
   const place = (x: number, y: number) => {
-    if (lost || won || y >= HORIZON_Y) return play("warn");
+    if (locked || won || y >= HORIZON_Y) return play("warn");
     const cur = grid[y]?.[x];
     if (cur === "rock" || (x === ship[0] && y === ship[1]) || (x === level.portal[0] && y === level.portal[1])) return play("warn");
-    if (tool === "thruster" && cur === "thruster") {
-      // clicking a placed thruster rotates it (free)
-      popped.current.set(`${x},${y}`, performance.now());
-      setDirs((d) => d.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? (v + 1) % 4 : v))));
-      return play("warn");
+    if (cur && tool !== "erase") {
+      return rotateModule([x, y]);
     }
     const next = grid.map((r) => [...r]);
     if (tool === "erase" || cur === tool) {
@@ -338,7 +350,8 @@ function Game() {
       if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
       popped.current.set(`${x},${y}`, performance.now());
-      if (tool === "thruster") {
+      setSelected([x, y]);
+      if (tool !== "erase") {
         // aim at the ship by default if it sits in a straight line
         const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
         setDirs((ds) => ds.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? d : v))));
@@ -353,8 +366,15 @@ function Game() {
     setGrid(next);
   };
 
-  const loadLevel = (i: number) => {
-    const l = LEVELS[i]!;
+  const loadLevel = (i: number, automatic = false) => {
+    if (!automatic) {
+      transitionTimers.current.forEach(clearTimeout);
+      transitionTimers.current = [];
+      setPortalFx(null); setTunnel(false);
+    }
+    const l = LEVELS[i];
+    if (!l) return;
+    setSelected(null);
     setLi(i);
     setGrid(makeGrid(l));
     setDirs(makeDirs());
@@ -369,19 +389,20 @@ function Game() {
   };
 
   const launch = () => {
+    if (locked || won) return;
     setFlying(true);
     play("power");
   };
 
   return (
     <main className="relative min-h-screen px-3 py-4 text-foreground lg:px-6">
-      <Starfield />
       {tunnel && <WarpTunnel duration={1950} />}
       <div
         ref={page}
         style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
         className={`mx-auto max-w-[1700px] ${lost ? "page-sucked" : emerging ? "page-emerge" : portalFx ? `page-portal-${portalFx.kind}` : ""}`}
       >
+        <Starfield />
         <header className="mb-3 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Your ship has no brakes. The black hole is hungry. Steer it home.</p>
@@ -392,9 +413,9 @@ function Game() {
         </p>
         <div className="mb-4 flex flex-wrap justify-center gap-2">
           {LEVELS.map((l, i) => (
-            <button key={l.name} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
+            <Button variant="pixel" key={l.name} disabled={locked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
               {i + 1}. {l.name}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -403,16 +424,27 @@ function Game() {
             <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
             <div className="grid gap-2">
               {TYPES.map((t) => (
-                <button key={t} onClick={() => setTool(t)} className={`pixel-btn text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn text-left ${tool === t ? "pixel-btn-active" : ""}`}>
                   <span className="flex justify-between">
                     <span>{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
                   </span>
                   <span className="block text-lg text-muted-foreground">{MODS[t].desc}</span>
-                </button>
+                </Button>
               ))}
-              <button onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove (half refund)</button>
+              <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
             </div>
+            {selected && grid[selected[1]]?.[selected[0]] && grid[selected[1]]?.[selected[0]] !== "rock" && (
+              <div className="mt-4 border-t border-border pt-3">
+                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Module direction">
+                  {[ArrowUp, ArrowRight, ArrowDown, ArrowLeft].map((Icon, dir) => (
+                    <Button key={dir} variant="pixel" size="icon" disabled={locked || won} aria-label={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} title={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} aria-pressed={dirs[selected[1]]?.[selected[0]] === dir} className={dirs[selected[1]]?.[selected[0]] === dir ? "pixel-btn-active" : ""} onClick={() => rotateModule(selected, dir)}><Icon /></Button>
+                  ))}
+                  <Button variant="pixel" size="icon" disabled={locked || won} aria-label="Rotate selected module" title="Rotate clockwise" onClick={() => rotateModule(selected)}><RotateCw /></Button>
+                </div>
+              </div>
+            )}
           </aside>
 
           <div className="order-1 flex flex-col items-center md:order-2">
@@ -433,6 +465,7 @@ function Game() {
                 onClick={(e) => place(...cellAt(e))}
                 onContextMenu={(e) => {
                   e.preventDefault();
+                  if (locked || won) return;
                   const [x, y] = cellAt(e);
                   const prev = tool;
                   if (grid[y]?.[x] && grid[y]![x] !== "rock") {
@@ -440,7 +473,7 @@ function Game() {
                     const cur = next[y]![x] as ModType;
                     next[y]![x] = null;
                     if (!sandbox) setWallet((w) => w + refund(cur));
-                    setGrid(next); play("remove");
+                    setGrid(next); setSelected(null); play("remove");
                   }
                   setTool(prev);
                 }}
@@ -448,12 +481,12 @@ function Game() {
             </div>
             <div className="mt-3 flex w-full gap-2">
               {!flying && !won && (
-                <button onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-sm">▶ LAUNCH</button>
+                <Button variant="pixel" onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-sm">▶ LAUNCH</Button>
               )}
               {flying && <p className="flex-1 text-center text-lg text-accent">Ship is moving — you can still place modules.</p>}
-              <button onClick={() => loadLevel(li)} className="pixel-btn">Restart</button>
+              <Button variant="pixel" disabled={locked} onClick={() => loadLevel(li)} className="pixel-btn">Restart</Button>
             </div>
-            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click a thruster (or press R) to turn it · Right-click a module to remove it</p>
+            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
           </div>
 
           <aside className="pixel-panel float-in order-3">
@@ -462,28 +495,29 @@ function Game() {
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
             <ol className="space-y-1 text-xl text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Click a thruster to turn it.</li>
-              <li>3. No friction: once moving, the ship glides until it hits something.</li>
-              <li>4. When the ship stops, the black hole pulls it down one square at a time.</li>
-              <li>5. If it falls into the purple bottom row, it's gone.</li>
-              <li>6. Three modules touching the ship at once will overload it.</li>
-              {!sandbox && <li>7. Running out of credits (¢) or time also loses the level.</li>}
+              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
+              <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
+              <li>4. No friction: once moving, the ship glides until it hits something.</li>
+              <li>5. When the ship stops, the black hole pulls it down one square at a time.</li>
+              <li>6. If it falls into the purple bottom row, it's gone.</li>
+              <li>7. Three modules touching the ship at once will overload it.</li>
+              {!sandbox && <li>8. Running out of credits (¢) or time also loses the level.</li>}
             </ol>
             {won && li === LEVELS.length - 1 && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
                 <p className="font-pixel text-sm text-success">ESCAPED!</p>
                 <p className="mt-2 text-lg">Build anything you like, or start again from Training.</p>
-                <button onClick={() => loadLevel(0)} className="pixel-btn mt-3 w-full">Play again</button>
+                <Button variant="pixel" onClick={() => loadLevel(0)} className="pixel-btn mt-3 w-full">Play again</Button>
                 {li < LEVELS.length - 1 && (
-                  <button onClick={() => loadLevel(li + 1)} className="pixel-btn pixel-btn-active mt-3 w-full">Next mission →</button>
+                  <Button variant="pixel" onClick={() => loadLevel(li + 1)} className="pixel-btn pixel-btn-active mt-3 w-full">Next mission →</Button>
                 )}
               </div>
             )}
           </aside>
         </div>
+        <footer className="relative mt-10 text-center text-lg text-muted-foreground">Made by Shravan Patil and Anshul Patil</footer>
       </div>
       {won && li < LEVELS.length - 1 && <p className="warp-banner font-pixel">SECTOR CLEAR · WARPING…</p>}
-      <footer className="relative mt-10 text-center text-lg text-muted-foreground">Made by Shravan Patil and Anshul Patil</footer>
       {!started && <StartScreen onStart={() => { setStarted(true); setEmerging(true); }} />}
       {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => { loadLevel(li); setEmerging(true); play("power"); }} />}
       {emerging && <WhiteHole onDone={() => setEmerging(false)} />}
