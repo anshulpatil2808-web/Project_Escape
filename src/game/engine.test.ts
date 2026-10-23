@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeDirs, makeGrid, refund, simulate, step, type Cell } from "./engine";
+import { DIRS, LEVELS, makeDirs, makeGrid, refund, simulate, step, thrusterDrivesShip, type Cell } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
@@ -42,9 +42,12 @@ describe("drift rules", () => {
     const { g, d } = build(2, []);
     expect(simulate(g, d, LEVELS[2]!)).toBe("blackhole");
   });
-  it("a lined-up thruster pushes the ship forward either way; sideways does nothing", () => {
+  it("exhaust toward the ship does not propel it, as in the reported Cold Start layout", () => {
     const facing = build(1, [[6, 2, "thruster", 3]]);
-    expect(step(facing.g, facing.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
+    const result = step(facing.g, facing.d, LEVELS[1]!, [5, 2], [0, 0]);
+    expect(result.ship).toEqual([5, 2]);
+    expect(result.vel).toEqual([0, 0]);
+    expect(result.event).toBe("blocked");
     const away = build(1, [[6, 2, "thruster", 1]]);
     expect(step(away.g, away.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
     const side = build(1, [[6, 2, "thruster", 0]]);
@@ -54,19 +57,22 @@ describe("drift rules", () => {
     const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
     expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
-  it("coins start at 2 and grow by 3 each mission", () => {
-    expect(LEVELS.map((level) => level.budget)).toEqual([2, 5, 8, 11, 14]);
+  it("Training starts with 2 coins and later budgets remain unchanged", () => {
+    expect([LEVELS[0]?.budget, ...LEVELS.slice(2).map((level) => level.budget)]).toEqual([2, 8, 11, 14]);
+  });
+  it("the second level starts with 8 points", () => {
+    expect(LEVELS[1]?.budget).toBe(8);
   });
   it("flight time starts at 20s and grows by 5s each mission", () => {
     expect(LEVELS.map((level) => level.time)).toEqual([20, 25, 30, 35, 40]);
   });
   it("every mission is solvable within its budget", () => {
     const solutions: Mod[][] = [
-      [[0, 2, "thruster", 1]],
-      [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
-      [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
-      [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
-      [[5, 1, "thruster", 3], [2, 2, "thruster", 3], [4, 5, "thruster", 0]],
+      [[0, 2, "thruster", 3]],
+      [[0, 2, "comms", 1], [6, 2, "thruster", 1]],
+      [[1, 3, "thruster", 3], [2, 5, "thruster", 2]],
+      [[0, 0, "thruster", 3], [1, 4, "thruster", 2]],
+      [[5, 1, "thruster", 1], [2, 2, "thruster", 1], [4, 5, "thruster", 2]],
     ];
     solutions.forEach((mods, li) => {
       const { g, d } = build(li, mods);
@@ -75,6 +81,17 @@ describe("drift rules", () => {
       expect(simulate(g, d, LEVELS[li]!)).toBe("portal");
     });
   });
+});
+
+it.each([0, 1, 2, 3])("thrust opposes exhaust in direction %i", (dir) => {
+  const exhaust = DIRS[dir];
+  const level = LEVELS[0];
+  if (!exhaust || !level) throw new Error("Missing direction or level");
+  const ship: [number, number] = [3 - exhaust[0], 3 - exhaust[1]];
+  const { g, d } = build(0, [[3, 3, "thruster", dir]]);
+  expect(thrusterDrivesShip(d, 3, 3, ship)).toBe(true);
+  expect(step(g, d, level, ship, [0, 0]).vel).toEqual([-exhaust[0] || 0, -exhaust[1] || 0]);
+  expect(thrusterDrivesShip(d, 3, 3, [3 + exhaust[0], 3 + exhaust[1]])).toBe(false);
 });
 
 import { step as stepRule, LEVELS as L2, SIZE as S2 } from "./engine";

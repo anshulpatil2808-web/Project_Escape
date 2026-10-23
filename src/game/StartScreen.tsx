@@ -15,7 +15,6 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
     launchAt.current = performance.now();
     setLaunching(true);
     play("power");
-    setTimeout(() => play("blackhole"), 150);
     setTimeout(onStart, 1900);
   };
 
@@ -161,7 +160,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
     <div className="start-screen" onClick={launch} role="button" aria-label="Press space to launch">
       <canvas ref={ref} width={W} height={H} className="hole-canvas" aria-hidden />
       <div className={`start-ui ${launching ? "start-ui-out" : ""}`}>
-        <h1 className="title-glitch font-pixel text-3xl text-primary md:text-6xl">PROJECT ESCAPE</h1>
+        <h1 className="escape-logo font-pixel text-3xl text-primary md:text-6xl">PROJECT ESCAPE</h1>
         <p className="mt-4 max-w-md text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
         <ul className="mx-auto mt-5 max-w-md space-y-1 text-left text-lg text-muted-foreground">
           <li>▸ Place thrusters, anchors and bumpers on the grid</li>

@@ -1,5 +1,10 @@
 # Roadmap
-- [x] Coins: 2 on Training, +3 per mission (2/5/8/11/14); timers 20/25/30/35/40s
+- [x] Set the second level to 8 points; verified its displayed wallet
+- [x] Investigate and correct the physics issue shown in image-8.png; verify all five missions
+- [x] Highlight the Project Escape title
+- [x] Add uploaded checkpoint and void sound effects; confirm browser playback requests
+- [x] Balance game panels and add dancing pixel aliens; verify desktop and narrow screens
+- [x] Coins: 2/8/8/11/14 with Cold Start override; timers 20/25/30/35/40s
 - [x] Redraw crushed-looking start-screen rocket (proper nose, hull, fins, engine bell)
 - [x] UFO grabs a module on timeout and drops it into the void
 - [x] Explain GitHub sync handoff (agent cannot push or verify sync)
@@ -18,7 +23,7 @@
 - [x] Win: ship spirals through portal, next level loads automatically
 - [x] Footer credit: Made by Shravan Patil and Anshul Patil
 - [x] Rocket-launch start screen (Space / tap), checked on phone size
-- [ ] Swap in user's sound files (blocked: files not uploaded yet)
+- [x] Swap in user's uploaded sound files
 - [x] Redesign level-clear warp (page dives into portal, emerges from next start)
 - [x] Bug sweep, clearer/larger wording, recheck hackathon checklist
 - [x] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations

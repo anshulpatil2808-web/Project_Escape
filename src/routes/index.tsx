@@ -13,6 +13,7 @@ import { WhiteHole } from "@/game/WhiteHole";
 import { ExitScreen } from "@/game/ExitScreen";
 import { UfoCapture } from "@/game/UfoCapture";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
+import { AlienDance } from "@/game/AlienDance";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
 const LOSS_TEXT: Record<Loss, string> = {
@@ -310,7 +311,8 @@ function Game() {
       if (h && tl !== "erase" && !grid[h[1]]?.[h[0]] && h[1] < HORIZON_Y && !(h[0] === ship[0] && h[1] === ship[1])) {
         // ghost preview of what a click will place (thrusters pre-aimed at the ship)
         c.globalAlpha = 0.4 + 0.15 * Math.sin(t / 150);
-        const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
+        const facing = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
+        const d = tl === "thruster" ? (facing + 2) % 4 : facing;
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
         else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
         c.globalAlpha = 1;
@@ -372,8 +374,9 @@ function Game() {
       popped.current.set(`${x},${y}`, performance.now());
       setSelected([x, y]);
       {
-        // aim at the ship by default if it sits in a straight line
-        const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
+        // Engines exhaust away from the ship; other active faces point toward it.
+        const facing = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
+        const d = tool === "thruster" ? (facing + 2) % 4 : facing;
         setDirs((ds) => ds.map((r, yy) => r.map((v, xx) => (xx === x && yy === y ? d : v))));
       }
       if (!sandbox) {
@@ -429,7 +432,7 @@ function Game() {
       >
         <Starfield />
         <header className="mb-3 text-center">
-          <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
+          <h1 className="escape-logo font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Your ship has no brakes. The black hole is hungry. Steer it home.</p>
         </header>
 
@@ -444,12 +447,12 @@ function Game() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[minmax(220px,1fr)_auto_minmax(220px,1fr)] lg:gap-8">
-          <aside className="pixel-panel float-in order-2 md:order-1">
+        <div className="game-layout">
+          <aside className="pixel-panel module-panel float-in">
             <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
-            <div className="grid gap-2">
+            <div className="module-list">
               {TYPES.map((t) => (
-                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn module-choice flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
                   <span className="flex justify-between">
                     <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-9 w-9 object-contain" />{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
@@ -461,7 +464,7 @@ function Game() {
             </div>
             {selected && grid[selected[1]]?.[selected[0]] && grid[selected[1]]?.[selected[0]] !== "rock" && (
               <div className="mt-4 border-t border-border pt-3">
-                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
+                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {grid[selected[1]]?.[selected[0]] === "thruster" ? "EXHAUST " : ""}{DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Module direction">
                   {[ArrowUp, ArrowRight, ArrowDown, ArrowLeft].map((Icon, dir) => (
                     <Button key={dir} variant="pixel" size="icon" disabled={locked || won} aria-label={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} title={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} aria-pressed={dirs[selected[1]]?.[selected[0]] === dir} className={dirs[selected[1]]?.[selected[0]] === dir ? "pixel-btn-active" : ""} onClick={() => rotateModule(selected, dir)}><Icon /></Button>
@@ -472,7 +475,7 @@ function Game() {
             )}
           </aside>
 
-          <div className="board-column order-1 flex flex-col items-center md:order-2">
+          <div className="board-column flex flex-col items-center">
             <div className="mb-3 flex w-full justify-between font-pixel text-sm">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
@@ -512,15 +515,16 @@ function Game() {
               <Button variant="pixel" disabled={locked} onClick={() => loadLevel(li)} className="pixel-btn">Restart</Button>
             </div>
             <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
+            <AlienDance />
           </div>
 
-          <aside className="pixel-panel float-in order-3">
+          <aside className="pixel-panel mission-panel float-in">
             <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
-            <ol className="space-y-1 text-xl text-muted-foreground">
+            <ol className="mission-rules text-xl text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
+              <li>2. Attach a thruster next to the ship with its flame pointing away. The ship travels opposite the exhaust. Turn modules to change direction.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
               <li>4. No friction: once moving, the ship glides until it hits something.</li>
               <li>5. When the ship stops, the black hole pulls it down one square at a time.</li>
