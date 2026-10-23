@@ -430,7 +430,7 @@ function Game() {
       >
         <Starfield />
         <header className="mb-3 text-center">
-          <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
+          <h1 className="escape-logo font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Your ship has no brakes. The black hole is hungry. Steer it home.</p>
         </header>
 

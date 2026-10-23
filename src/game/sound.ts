@@ -1,6 +1,11 @@
-// Retro sounds made in code. When sound files are uploaded, set the URLs here
-// and they will play instead of the generated ones.
-export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
+import checkpoint from "@/assets/checkpoint.wav.asset.json";
+import voidSound from "@/assets/void.wav.asset.json";
+
+// Uploaded effects replace synthesis for level clears and void losses.
+export const SOUND_FILES: Partial<Record<SoundName, string>> = {
+  win: checkpoint.url,
+  blackhole: voidSound.url,
+};
 
 export type SoundName = "place" | "remove" | "power" | "win" | "warn" | "blackhole";
 
@@ -37,7 +42,12 @@ function noise(dur: number, vol = 0.15) {
 export function play(name: SoundName) {
   try {
     const file = SOUND_FILES[name];
-    if (file) return void new Audio(file).play();
+    if (file) {
+      const audio = new Audio(file);
+      audio.volume = 0.65;
+      void audio.play().catch(() => { /* Browser audio may be blocked. */ });
+      return;
+    }
     if (name === "place") tone(520, 0.08);
     if (name === "remove") tone(300, 0.1, "square", 0.06, 120);
     if (name === "power") { tone(440, 0.08); tone(660, 0.12, "square", 0.08, undefined, 0.08); }

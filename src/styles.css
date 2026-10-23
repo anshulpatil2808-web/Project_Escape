@@ -239,6 +239,8 @@
 @theme inline { --color-hole-glow: var(--hole-glow); }
 
 .title-glitch { text-shadow: 2px 2px var(--background); }
+.escape-logo { position: relative; display: inline-block; max-width: 100%; line-height: 1.5; text-wrap: balance; text-shadow: 0 -1px var(--foreground), 2px 3px var(--border), 0 0 18px color-mix(in oklch, var(--primary) 40%, transparent); }
+.escape-logo::after { content: ""; display: block; height: 3px; margin: 8px auto 0; width: 70%; background: linear-gradient(90deg, transparent, var(--primary), var(--foreground), var(--accent), transparent); }
 @keyframes glitch { 0%,92%,100% { transform: none; } 93% { transform: translate(2px,-1px) skewX(8deg); } 96% { transform: translate(-2px,1px); } }
 .float-in { animation: floatIn 600ms steps(6) both; }
 @keyframes floatIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
