@@ -227,3 +227,26 @@
 .page-emerge { transform-origin: 50% 50vh; animation: pageEmerge 1.4s steps(14) both; }
 @keyframes pageEmerge { 0% { transform: scale(0) rotate(540deg); filter: brightness(6) contrast(3); opacity: 0; }
   60% { transform: scale(1.08) rotate(-6deg); filter: brightness(1.8); opacity: 1; } 100% { transform: none; filter: none; } }
+.start-screen { position: fixed; inset: 0; z-index: 60; cursor: pointer; background: var(--background); }
+.start-ui { position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; pointer-events: none; }
+.start-ui-out { animation: startOut 600ms steps(6) forwards; }
+@keyframes startOut { to { opacity: 0; transform: translateY(-40px); } }
+.blink { animation: danger 1s steps(2) infinite; }
+.goal-line { border: 2px dashed var(--border); padding: .4rem .8rem; background: var(--card); }
+.tactical { padding: 14px; background:
+  linear-gradient(var(--primary), var(--primary)) top left / 14px 2px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) top left / 2px 14px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) top right / 14px 2px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) top right / 2px 14px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) bottom left / 14px 2px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) bottom left / 2px 14px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) bottom right / 14px 2px no-repeat,
+  linear-gradient(var(--primary), var(--primary)) bottom right / 2px 14px no-repeat; }
+.tactical::after { content: ""; position: absolute; inset: 18px; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, oklch(0 0 0 / .18) 3px 4px);
+  animation: scan 6s linear infinite; }
+@keyframes scan { to { background-position: 0 40px; } }
+.hud-tag { position: absolute; top: -6px; font-family: var(--font-pixel); font-size: 8px; color: var(--primary); background: var(--background); padding: 0 4px; }
+.hud-tl { left: 20px; } .hud-tr { right: 20px; color: var(--accent); }
+.warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 40; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
+  text-shadow: 0 0 12px var(--primary); animation: floatIn 400ms steps(4) both, danger .5s steps(2) infinite; pointer-events: none; }
