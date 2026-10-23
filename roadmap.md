@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Remove Free Drift; Gravity Well is final mission with a dedicated exit screen
 - [ ] Replace bumper, anchor, asteroid and thruster artwork with uploaded images
 - [ ] Removing a module restores its full cost (2 → 0 → 2); rotation stays free
 - [ ] Check all levels and fix visible glitches
