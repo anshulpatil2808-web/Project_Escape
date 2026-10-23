@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeDirs, makeGrid, simulate, step, type Cell } from "./engine";
+import { LEVELS, makeDirs, makeGrid, refund, simulate, step, type Cell } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
@@ -9,6 +9,35 @@ const build = (li: number, mods: Mod[]) => {
 };
 
 describe("drift rules", () => {
+  it("ends with Gravity Well after five missions, without Free Drift", () => {
+    expect(LEVELS.length).toBe(5);
+    expect(LEVELS.at(-1)?.name).toBe("Gravity Well");
+    expect(LEVELS.some((level) => level.name === "Free Drift")).toBe(false);
+  });
+  it.each([["thruster", 2], ["shield", 3], ["comms", 1]] as const)("removing %s restores its full %i-coin cost", (module, price) => {
+    expect(price - price + refund(module)).toBe(price);
+    expect(refund(module)).toBe(price);
+  });
+  it.each([0, 1, 2, 3])("anchor direction %i holds only its facing square", (dir) => {
+    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]] as const;
+    const vector = vectors[dir];
+    if (!vector) throw new Error("missing direction");
+    const { g, d } = build(0, [[3, 3, "shield", dir]]);
+    expect(step(g, d, LEVELS[0]!, [3 + vector[0], 3 + vector[1]], [1, 0]).event).toBe("held");
+    expect(step(g, d, LEVELS[0]!, [3 - vector[0], 3 - vector[1]], [1, 0]).event).not.toBe("held");
+  });
+  it.each([0, 1, 2, 3])("bumper direction %i stops its front and reflects its back", (dir) => {
+    const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]] as const;
+    const vector = vectors[dir];
+    if (!vector) throw new Error("missing direction");
+    const [dx, dy] = vector;
+    const { g, d } = build(0, [[3, 3, "comms", dir]]);
+    expect(step(g, d, LEVELS[0]!, [3 + dx, 3 + dy], [-dx, -dy]).vel).toEqual([0, 0]);
+    const bounced = step(g, d, LEVELS[0]!, [3 - dx, 3 - dy], [dx, dy]);
+    expect(bounced.ship).toEqual([3 - dx, 3 - dy]);
+    expect(bounced.vel).toEqual([-dx || 0, -dy || 0]);
+    expect(bounced.event).toBe("blocked");
+  });
   it("a still ship falls into the black hole", () => {
     const { g, d } = build(2, []);
     expect(simulate(g, d, LEVELS[2]!)).toBe("blackhole");

@@ -165,7 +165,7 @@
 .pixel-canvas { image-rendering: pixelated; }
 .pixel-frame {
   border: 4px solid var(--border);
-  background: oklch(0.1 0.03 270 / 0.6);
+  background: var(--background);
   box-shadow: 0 0 0 4px var(--background), 0 0 40px oklch(0.88 0.14 200 / 0.25);
 }
 .pixel-panel {
@@ -175,6 +175,8 @@
   padding: 1rem;
 }
 .pixel-btn {
+  height: auto;
+  min-height: 36px;
   font-size: 1.15rem;
   padding: 0.35rem 0.75rem;
   border: 2px solid var(--border);
@@ -185,11 +187,17 @@
 .pixel-btn:hover { transform: translate(-1px, -1px); border-color: var(--primary); }
 .pixel-btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .pixel-btn-active { border-color: var(--primary); color: var(--primary); background: oklch(0.88 0.14 200 / 0.12); }
+.pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
+.board-column { min-width: 0; width: 100%; }
+.board-column .board-wrap { width: min(100%, 74vh, 788px); }
+.board-column canvas { width: 100%; }
+.exit-portal { width: 80px; height: 80px; border: 6px dashed var(--primary); border-radius: 50%; box-shadow: 0 0 24px var(--primary); animation: spin 9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .exit-portal { animation: none; } }
 
 :root { --hole: oklch(0.05 0.02 300); --hole-glow: oklch(0.7 0.25 320); }
 @theme inline { --color-hole-glow: var(--hole-glow); }
 
-.title-glitch { animation: glitch 3s steps(1) infinite; text-shadow: 2px 0 var(--hole-glow), -2px 0 var(--primary); }
+.title-glitch { text-shadow: 2px 2px var(--background); }
 @keyframes glitch { 0%,92%,100% { transform: none; } 93% { transform: translate(2px,-1px) skewX(8deg); } 96% { transform: translate(-2px,1px); } }
 .float-in { animation: floatIn 600ms steps(6) both; }
 @keyframes floatIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -224,9 +232,9 @@
   20% { box-shadow: 4px -2px 0 2px var(--primary), 0 0 30px var(--primary); border-color: var(--primary); }
   25% { box-shadow: -3px 3px 0 2px var(--hole-glow), 0 0 8px var(--hole-glow); }
   60% { border-color: var(--accent); box-shadow: 0 0 0 2px var(--hole), 0 0 24px var(--accent); } }
-.page-emerge { transform-origin: 50% 50vh; animation: pageEmerge 1.4s steps(14) both; }
-@keyframes pageEmerge { 0% { transform: scale(0) rotate(540deg); filter: brightness(6) contrast(3); opacity: 0; }
-  60% { transform: scale(1.08) rotate(-6deg); filter: brightness(1.8); opacity: 1; } 100% { transform: none; filter: none; } }
+.page-emerge { transform-origin: 50% 50vh; animation: pageEmerge 1.35s .45s cubic-bezier(.16,.8,.25,1) both; pointer-events: none; }
+@keyframes pageEmerge { 0% { transform: scale(.015); filter: brightness(3); opacity: 0; }
+  25% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
 .start-screen { position: fixed; inset: 0; z-index: 60; cursor: pointer; background: var(--background); }
 .start-ui { position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; pointer-events: none; }
 .start-ui-out { animation: startOut 600ms steps(6) forwards; }
@@ -244,7 +252,7 @@
   linear-gradient(var(--primary), var(--primary)) bottom right / 2px 14px no-repeat; }
 .tactical::after { content: ""; position: absolute; inset: 18px; pointer-events: none;
   background: repeating-linear-gradient(to bottom, transparent 0 3px, oklch(0 0 0 / .18) 3px 4px);
-  animation: scan 6s linear infinite; }
+  }
 @keyframes scan { to { background-position: 0 40px; } }
 .hud-tag { position: absolute; top: -6px; font-family: var(--font-pixel); font-size: 8px; color: var(--primary); background: var(--background); padding: 0 4px; }
 .hud-tl { left: 20px; } .hud-tr { right: 20px; color: var(--accent); }
@@ -252,11 +260,12 @@
   text-shadow: 0 0 12px var(--primary); animation: floatIn 400ms steps(4) both, danger .5s steps(2) infinite; pointer-events: none; }
 
 /* level-to-level warp: page zooms into the portal, tunnel plays, page unfolds from the next start cell */
-.page-portal-enter { animation: portalEnter 700ms cubic-bezier(.7,0,1,.5) both; }
+.page-portal-enter { animation: portalEnter 700ms cubic-bezier(.7,0,1,.5) both; pointer-events: none; }
 @keyframes portalEnter { 0% { transform: none; filter: none; opacity: 1; }
   100% { transform: scale(0.04); filter: brightness(3) saturate(2); opacity: 0; } }
 .page-portal-hidden { opacity: 0; transform: scale(0.04); }
-.page-portal-exit { animation: portalExit 750ms cubic-bezier(.2,.9,.3,1.15) both; }
+.page-portal-exit { animation: portalExit 750ms cubic-bezier(.2,.9,.3,1) both; pointer-events: none; }
 @keyframes portalExit { 0% { transform: scale(0.04); filter: brightness(3); opacity: 0; }
   40% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .page-portal-enter, .page-portal-exit { animation-duration: 1ms; } }
+@media (prefers-reduced-motion: reduce) { .page-emerge { animation: none; } }

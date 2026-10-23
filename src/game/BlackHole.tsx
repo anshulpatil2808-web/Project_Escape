@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 
 const W = 192, H = 108;
 // Palette in the game's colours (canvas pixels need literal values)
@@ -12,7 +13,8 @@ export function BlackHole({ reason, onRetry }: { reason: string; onRetry: () => 
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const c = ref.current!.getContext("2d")!;
+    const c = ref.current?.getContext("2d");
+    if (!c) return;
     const cx = W / 2, cy = H / 2;
     // debris = the station and page being torn apart
     const parts: P[] = Array.from({ length: 700 }, () => ({
@@ -95,7 +97,7 @@ export function BlackHole({ reason, onRetry }: { reason: string; onRetry: () => 
         <div className="hole-text">
           <p className="font-pixel text-lg text-hole-glow md:text-2xl">SPAGHETTIFIED</p>
           <p className="mt-3 text-2xl text-foreground">{reason} The black hole took your station.</p>
-          <button onClick={onRetry} className="pixel-btn pixel-btn-active mt-5">Try again</button>
+          <Button variant="pixel" onClick={onRetry} className="pixel-btn-active mt-5">Try again</Button>
         </div>
       </div>
     </>

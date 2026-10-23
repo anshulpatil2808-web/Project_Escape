@@ -6,7 +6,9 @@ const W = 160, H = 90;
 export function WarpTunnel({ duration = 1300 }: { duration?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const c = ref.current!.getContext("2d")!;
+    const element = ref.current;
+    const c = element?.getContext("2d");
+    if (!element || !c) return;
     const stars = Array.from({ length: 140 }, () => ({ a: Math.random() * Math.PI * 2, r: Math.random() * 6, v: 0.6 + Math.random() * 2.4 }));
     const t0 = performance.now();
     let raf = 0;
@@ -36,7 +38,7 @@ export function WarpTunnel({ duration = 1300 }: { duration?: number }) {
       }
       // bright core
       c.fillStyle = "#e8fbff"; c.fillRect(W / 2 - 2, H / 2 - 1, 4, 2);
-      ref.current!.style.opacity = String(alpha);
+      element.style.opacity = String(alpha);
       if (t < 1) raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);

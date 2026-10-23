@@ -14,8 +14,8 @@ export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
   thruster: { name: "Thruster", cost: 2, desc: "Place it next to the ship, in line with it, to push the ship away. Click it to turn it." },
-  shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it." },
-  comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it." },
+  shield: { name: "Anchor", cost: 3, desc: "Its glowing face holds the ship in the square it points at." },
+  comms: { name: "Bumper", cost: 1, desc: "The padded face stops the ship; the other sides bounce it back." },
 };
 
 export const SIZE = 7;
@@ -39,7 +39,6 @@ export const LEVELS: Level[] = [
   { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
   { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
   { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 6, time: 40, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
-  { name: "Free Drift", brief: "Sandbox. Unlimited credits, no clock.", budget: 999, time: 0, ship: [3, 2], portal: [6, 0], rocks: [] },
 ];
 
 export function makeGrid(level: Level): Cell[][] {
@@ -50,6 +49,10 @@ export function makeGrid(level: Level): Cell[][] {
 export const makeDirs = () => Array.from({ length: SIZE }, () => Array(SIZE).fill(1) as number[]);
 
 const isMod = (c: Cell): c is ModType => c === "thruster" || c === "shield" || c === "comms";
+export function facesShip(dirs: number[][], x: number, y: number, ship: Vec) {
+  const direction = DIRS[dirs[y]?.[x] ?? 1];
+  return !!direction && x + direction[0] === ship[0] && y + direction[1] === ship[1];
+}
 const N4: Vec[] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 export function neighbours(g: Cell[][], [sx, sy]: Vec) {
@@ -64,8 +67,8 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
   const adj = neighbours(g, ship);
   // 1. Overload: three or more modules touching the ship tear it apart
   if (adj.length >= 3) return { ship, vel: [0, 0], event: "overload" };
-  // 2. Anchor next to the ship: it holds still
-  if (adj.some((n) => n.c === "shield")) return { ship, vel: [0, 0], event: "held" };
+  // 2. Only an anchor's illuminated face holds the ship.
+  if (adj.some((n) => n.c === "shield" && facesShip(dirs, n.x, n.y, ship))) return { ship, vel: [0, 0], event: "held" };
 
   let v: Vec = vel;
   // 3. Thrusters lined up with the ship (blast toward it, or exhaust pointing away like an engine)
@@ -84,7 +87,10 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
   const nx = sx + v[0], ny = sy + v[1];
   if (nx === level.portal[0] && ny === level.portal[1]) return { ship: [nx, ny], vel: v, event: "portal" };
   if (ny >= HORIZON_Y && nx >= 0 && nx < SIZE) return { ship: [nx, ny], vel: v, event: "blackhole" };
-  if (nx < 0 || nx >= SIZE || ny < 0 || g[ny]![nx]) return { ship, vel: [0, 0], event: "blocked" };
+  if (g[ny]?.[nx] === "comms" && !facesShip(dirs, nx, ny, ship)) {
+    return { ship, vel: [-v[0] || 0, -v[1] || 0], event: "blocked" };
+  }
+  if (nx < 0 || nx >= SIZE || ny < 0 || g[ny]?.[nx]) return { ship, vel: [0, 0], event: "blocked" };
   return { ship: [nx, ny], vel: v, event: "move" };
 }
 
@@ -100,5 +106,5 @@ export function simulate(g: Cell[][], dirs: number[][], level: Level, max = 60) 
   return "stuck";
 }
 
-/** Refund when a module is removed: half its cost, rounded down. */
-export const refund = (m: ModType) => Math.floor(MODS[m].cost / 2);
+/** Removing restores the full purchase cost; rotating is free. */
+export const refund = (m: ModType) => MODS[m].cost;

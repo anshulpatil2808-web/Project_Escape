@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { play } from "./sound";
+import { drawArtwork } from "./artwork";
 
 const W = 160, H = 120;
 
@@ -64,7 +65,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       // drifting asteroids
       for (const r of rocks) {
         r.x += r.v; if (r.x > W + 4) r.x = -4;
-        px(r.x, r.y, r.s, r.s, "#6b5a4a"); px(r.x, r.y, 1, 1, "#a08870");
+        if (!drawArtwork(c, "rock", r.x, r.y, r.s + 4)) { px(r.x, r.y, r.s, r.s, "#6b5a4a"); px(r.x, r.y, 1, 1, "#a08870"); }
       }
       // satellite orbiting
       const sa = now / 3000, sx2 = 40 + Math.cos(sa) * 26, sy2 = 22 + Math.sin(sa) * 8;
@@ -95,7 +96,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
           hitAt = lt; play("remove");
           for (let i = 0; i < 18; i++) debris.push({ x: 82, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
         }
-        px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); px(ax - 1, ay - 2, 2, 2, "#a08870"); px(ax + 1, ay + 1, 2, 1, "#3a2c20");
+        if (!drawArtwork(c, "rock", ax - 5, ay - 5, 12)) { px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); }
       }
       for (let i = debris.length - 1; i >= 0; i--) {
         const d = debris[i]!; d.x += d.vx; d.y += d.vy; d.vy += 0.05; d.l--;
@@ -146,7 +147,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
         <p className="mt-4 max-w-md text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
         <ul className="mx-auto mt-5 max-w-md space-y-1 text-left text-lg text-muted-foreground">
           <li>▸ Place thrusters, anchors and bumpers on the grid</li>
-          <li>▸ Click a thruster to rotate it — line it up with the ship</li>
+          <li>▸ Turn any module to choose its active face</li>
           <li>▸ Hit Launch and watch the ship drift</li>
           <li>▸ Reach the portal before the black hole eats you</li>
         </ul>

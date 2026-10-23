@@ -1,4 +1,12 @@
 # Roadmap
+- [x] UFO grabs a module on timeout and drops it into the void
+- [x] Explain GitHub sync handoff (agent cannot push or verify sync)
+- [x] Remove Free Drift; Gravity Well is final mission with a dedicated exit screen
+- [x] Replace bumper, anchor, asteroid and thruster artwork with uploaded images
+- [x] Removing a module restores its full cost (2 → 0 → 2); rotation stays free
+- [x] Check all levels and fix visible glitches
+- [x] Meaningful rotation for anchor, bumper and thruster, with touch controls and rule tests
+- [x] Verify automatic level travel and whole-site white-hole emergence
 - [x] Electric glowing box behind SPAGHETTIFIED
 - [x] White hole fission burst on "Try again"
 - [x] New "Drift" puzzle concept

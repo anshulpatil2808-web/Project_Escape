@@ -6,9 +6,11 @@ Made by Shravan Patil and Anshul Patil for Pixathon ("Any puzzle, your rules").
 
 ## How it plays
 
-- **Thruster** — pushes the ship away along its flame. Click a placed thruster to rotate it a quarter turn, free of charge.
-- **Anchor** — holds the ship still while it sits next to it.
-- **Bumper** — stops the ship dead on contact.
+- **Thruster** — pushes an adjacent ship away when aligned on the same axis, with its flame toward or away from the ship.
+- **Anchor** — holds the ship only in the adjacent square its glowing face points at.
+- **Bumper** — its padded face stops the ship; the other sides reflect it.
+
+Click any placed module to rotate it for free, or use the selected module's arrow controls.
 
 Press **Launch** and the ship drifts. Reach the portal before the black hole eats you.
 
@@ -16,14 +18,14 @@ Press **Launch** and the ship drifts. Reach the portal before the black hole eat
 
 - the ship falls into the event horizon (the glowing bottom row),
 - three modules touch the ship at once,
-- you run out of credits (removing a module only refunds half),
+- you spend your last credits during flight (removing a module restores its full cost),
 - or the mission timer runs out.
 
 Losing sucks the whole screen into a pixelated black hole. **Try again** fires a white-hole fission burst and drops you back in.
 
 ## Levels
 
-Training → Cold Start → Ricochet → High Orbit → Gravity Well, plus a Free Drift sandbox. Every level is generated and validated by brute-force search over module placements, so each budget equals the cheapest solution that exists and no level is unsolvable.
+Training → Cold Start → Ricochet → High Orbit → Gravity Well. Completing Gravity Well opens the exit screen, with replay or return-to-launch options. All five missions have tested solutions within their budgets.
 
 ## Run it locally
 

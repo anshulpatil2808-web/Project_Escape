@@ -1,4 +1,5 @@
-import type { Cell } from "./engine";
+import type { Cell, ModType } from "./engine";
+import { drawArtwork } from "./artwork";
 
 // Pixel-art palette (canvas content colors)
 const P = {
@@ -9,6 +10,27 @@ const P = {
 };
 
 type Ctx = CanvasRenderingContext2D;
+/** Facing marker is always on the active side; base art faces upward. */
+export function drawDirectionalCell(c: Ctx, cell: ModType, x: number, y: number, t: number, dir: number) {
+  if (drawArtwork(c, cell, x, y, 16, dir)) {
+    c.save(); c.translate(x + 8, y + 8); c.rotate(dir * Math.PI / 2);
+    r(c, -3, -7, 6, 1, cell === "shield" ? P.green : P.amber);
+    r(c, -1, -8, 2, 1, P.cyan); c.restore();
+    return;
+  }
+  c.save();
+  c.translate(x + 8, y + 8);
+  c.rotate(dir * Math.PI / 2);
+  drawCell(c, cell, -8, -8, t, true);
+  const color = cell === "shield" ? P.green : P.amber;
+  r(c, -5, -7, 10, 2, color);
+  r(c, -1, -8, 2, 1, P.cyan);
+  if (cell === "shield") {
+    r(c, -3, -4, 1, 2, color);
+    r(c, 2, -4, 1, 2, color);
+  }
+  c.restore();
+}
 const r = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => {
   c.fillStyle = col;
   c.fillRect(x, y, w, h);
@@ -28,6 +50,7 @@ export function drawCell(c: Ctx, cell: Cell, x: number, y: number, t: number, on
   const blink = Math.floor(t / 400) % 2 === 0;
   const f = Math.floor(t / 90);
   if (cell === "rock") {
+    if (drawArtwork(c, "rock", x, y, 16)) return;
     const wob = Math.round(Math.sin(t / 900 + x) * 0.6);
     r(c, x + 3, y + 4 + wob, 10, 8, P.rock);
     r(c, x + 4, y + 3 + wob, 7, 1, P.rock);

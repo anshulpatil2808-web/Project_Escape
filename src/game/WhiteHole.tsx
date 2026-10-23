@@ -8,7 +8,8 @@ type N = { x: number; y: number; vx: number; vy: number; gen: number; life: numb
 export function WhiteHole({ onDone }: { onDone: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const c = ref.current!.getContext("2d")!;
+    const c = ref.current?.getContext("2d");
+    if (!c) return;
     const cx = W / 2, cy = H / 2;
     let nuclei: N[] = Array.from({ length: 6 }, (_, i) => {
       const a = (i / 6) * Math.PI * 2;
@@ -17,12 +18,23 @@ export function WhiteHole({ onDone }: { onDone: () => void }) {
     const start = performance.now();
     let raf = 0;
     const loop = (now: number) => {
-      const t = (now - start) / 1000;
+      const elapsed = (now - start) / 1000;
+      const t = Math.max(0, elapsed - 0.35);
       // fade old pixels to transparent so the page shows through as it emerges
       c.globalCompositeOperation = "destination-out";
       c.fillStyle = "rgba(0,0,0,0.3)";
       c.fillRect(0, 0, W, H);
       c.globalCompositeOperation = "source-over";
+      if (elapsed < 0.35) {
+        c.fillStyle = HOT[3] ?? "#7df9ff";
+        for (let i = 0; i < 24; i++) {
+          const angle = i / 24 * Math.PI * 2 + elapsed * 8;
+          const radius = 16 * (1 - elapsed / 0.35) + 3;
+          c.fillRect(Math.round(cx + Math.cos(angle) * radius * 1.6), Math.round(cy + Math.sin(angle) * radius), 1, 1);
+        }
+        raf = requestAnimationFrame(loop);
+        return;
+      }
       // core flash then shockwave rings
       const core = Math.max(0, 14 - t * 14);
       for (let y = -core; y <= core; y++) for (let x = -core; x <= core; x++)
@@ -52,7 +64,7 @@ export function WhiteHole({ onDone }: { onDone: () => void }) {
         } else if (n.x > -5 && n.x < W + 5 && n.y > -5 && n.y < H + 5) next.push(n);
       }
       nuclei = next;
-      if (t < 1.5) raf = requestAnimationFrame(loop);
+      if (t < 1.55) raf = requestAnimationFrame(loop);
       else onDone();
     };
     raf = requestAnimationFrame(loop);
