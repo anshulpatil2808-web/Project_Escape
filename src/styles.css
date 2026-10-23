@@ -269,3 +269,19 @@
   40% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .page-portal-enter, .page-portal-exit { animation-duration: 1ms; } }
 @media (prefers-reduced-motion: reduce) { .page-emerge { animation: none; } }
+
+/* evenly sized, readable side panels */
+.game-grid { display: grid; gap: 1rem; align-items: stretch; }
+@media (min-width: 768px) { .game-grid { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1.5rem; } }
+.side-panel { display: flex; flex-direction: column; min-width: 0; padding: 1.25rem; }
+.panel-title { font-size: .85rem; letter-spacing: .1em; color: var(--accent); margin-bottom: .9rem; }
+.module-list { display: flex; flex: 1; flex-direction: column; gap: .65rem; }
+.module-card { display: flex; flex: 1 1 auto; flex-direction: column; justify-content: center; gap: .4rem; }
+.module-name { display: flex; align-items: center; justify-content: space-between; gap: .6rem; font-size: 1.3rem; }
+.module-desc { font-size: 1.05rem; line-height: 1.4; color: var(--muted-foreground); }
+.module-remove { min-height: 44px; font-size: 1.2rem; }
+.mission-brief { font-size: 1.2rem; line-height: 1.45; }
+.mission-rules { display: flex; flex: 1; flex-direction: column; justify-content: space-between; gap: .55rem; font-size: 1.05rem; line-height: 1.4; color: var(--muted-foreground); }
+.hud-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .9rem; background: oklch(0.05 0.02 300 / .8); border: 2px solid var(--border); padding: .35rem .65rem; }
+.level-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
+@media (min-width: 768px) { .level-row { display: flex; flex-wrap: wrap; justify-content: center; } }

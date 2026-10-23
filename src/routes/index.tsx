@@ -433,7 +433,7 @@ function Game() {
         <p className="goal-line mx-auto mb-4 max-w-2xl text-center text-xl">
           <span className="font-pixel text-sm text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
         </p>
-        <div className="mb-4 flex flex-wrap justify-center gap-2">
+        <div className="level-row mb-4">
           {LEVELS.map((l, i) => (
             <Button variant="pixel" key={l.name} disabled={locked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
               {i + 1}. {l.name}
@@ -441,25 +441,25 @@ function Game() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[minmax(220px,1fr)_auto_minmax(220px,1fr)] lg:gap-8">
-          <aside className="pixel-panel float-in order-2 md:order-1">
-            <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
-            <div className="grid gap-2">
+        <div className="game-grid">
+          <aside className="pixel-panel side-panel float-in order-2 md:order-1">
+            <h2 className="panel-title font-pixel">MODULES</h2>
+            <div className="module-list">
               {TYPES.map((t) => (
-                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
-                  <span className="flex justify-between">
-                    <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-9 w-9 object-contain" />{MODS[t].name}</span>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn module-card flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                  <span className="module-name">
+                    <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-10 w-10 object-contain" />{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
                   </span>
-                  <span className="block text-lg text-muted-foreground">{MODS[t].desc}</span>
+                  <span className="module-desc">{MODS[t].desc}</span>
                 </Button>
               ))}
-              <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
+              <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn module-remove ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
             </div>
           </aside>
 
           <div className="board-column order-1 flex flex-col items-center md:order-2">
-            <div className="mb-3 flex w-full justify-between font-pixel text-sm">
+            <div className="hud-row font-pixel mb-3 w-full">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
             </div>
@@ -500,11 +500,11 @@ function Game() {
             <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
           </div>
 
-          <aside className="pixel-panel float-in order-3">
-            <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
-            <p className="text-xl">{level.brief}</p>
-            <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
-            <ol className="space-y-1 text-xl text-muted-foreground">
+          <aside className="pixel-panel side-panel float-in order-3">
+            <h2 className="panel-title font-pixel">MISSION</h2>
+            <p className="mission-brief">{level.brief}</p>
+            <h2 className="panel-title font-pixel mt-4">HOW IT WORKS</h2>
+            <ol className="mission-rules">
               <li>1. Get the ship into the spinning portal.</li>
               <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
