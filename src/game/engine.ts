@@ -13,7 +13,7 @@ export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Thruster", cost: 2, desc: "Lined up with the ship (blast in or exhaust out), it pushes the ship forward. Click to rotate." },
+  thruster: { name: "Thruster", cost: 2, desc: "Place it next to the ship, in line with it, to push the ship away. Click it to turn it." },
   shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it." },
   comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it." },
 };
@@ -34,7 +34,7 @@ export interface Level {
 
 // Every level is checked by a solver (engine.test.ts): budget equals the cheapest solution.
 export const LEVELS: Level[] = [
-  { name: "Training", brief: "Aim the thruster at the ship so its blast fires the ship right.", budget: 2, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
+  { name: "Training", brief: "Put a thruster on the left of the ship, then press Launch.", budget: 2, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
   { name: "Cold Start", brief: "Exact budget, and only one answer works.", budget: 3, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
   { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
   { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },

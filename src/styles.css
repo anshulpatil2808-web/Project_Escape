@@ -138,7 +138,7 @@
   --primary: oklch(0.88 0.14 200);
   --primary-foreground: oklch(0.15 0.03 270);
   --accent: oklch(0.82 0.15 70);
-  --muted-foreground: oklch(0.7 0.04 250);
+  --muted-foreground: oklch(0.84 0.04 250);
   --card: oklch(0.16 0.04 270 / 0.85);
   --border: oklch(0.45 0.08 240);
   --success: oklch(0.85 0.2 145);
@@ -248,15 +248,15 @@
 @keyframes scan { to { background-position: 0 40px; } }
 .hud-tag { position: absolute; top: -6px; font-family: var(--font-pixel); font-size: 8px; color: var(--primary); background: var(--background); padding: 0 4px; }
 .hud-tl { left: 20px; } .hud-tr { right: 20px; color: var(--accent); }
-.warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 40; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
+.warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 55; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
   text-shadow: 0 0 12px var(--primary); animation: floatIn 400ms steps(4) both, danger .5s steps(2) infinite; pointer-events: none; }
 
-/* level-to-level warp: the whole page dives into the portal, then unfolds from the next start cell */
-.page-portal-enter { animation: portalEnter 900ms cubic-bezier(.6,0,.9,.4) both; }
-@keyframes portalEnter { 0% { transform: none; filter: none; }
-  40% { transform: rotate(30deg) scale(.7); filter: hue-rotate(60deg) brightness(1.4); }
-  100% { transform: rotate(360deg) scale(0); filter: hue-rotate(180deg) brightness(3) blur(2px); opacity: 0; } }
-.page-portal-exit { animation: portalExit 1000ms steps(14) both; }
-@keyframes portalExit { 0% { transform: rotate(-360deg) scale(0); filter: brightness(4) hue-rotate(-120deg); opacity: 0; }
-  60% { transform: rotate(10deg) scale(1.05); filter: brightness(1.4); opacity: 1; }
-  100% { transform: none; filter: none; } }
+/* level-to-level warp: page zooms into the portal, tunnel plays, page unfolds from the next start cell */
+.page-portal-enter { animation: portalEnter 700ms cubic-bezier(.7,0,1,.5) both; }
+@keyframes portalEnter { 0% { transform: none; filter: none; opacity: 1; }
+  100% { transform: scale(0.04); filter: brightness(3) saturate(2); opacity: 0; } }
+.page-portal-hidden { opacity: 0; transform: scale(0.04); }
+.page-portal-exit { animation: portalExit 750ms cubic-bezier(.2,.9,.3,1.15) both; }
+@keyframes portalExit { 0% { transform: scale(0.04); filter: brightness(3); opacity: 0; }
+  40% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .page-portal-enter, .page-portal-exit { animation-duration: 1ms; } }

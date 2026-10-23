@@ -1,3 +1,4 @@
+import { WarpTunnel } from "@/game/WarpTunnel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
@@ -92,7 +93,8 @@ function Game() {
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const page = useRef<HTMLDivElement>(null);
-  const [portalFx, setPortalFx] = useState<{ kind: "enter" | "exit"; origin: string } | null>(null);
+  const [portalFx, setPortalFx] = useState<{ kind: "enter" | "hidden" | "exit"; origin: string } | null>(null);
+  const [tunnel, setTunnel] = useState(false);
   // where a grid cell sits inside the page wrapper, used as the warp's vanishing point
   const cellOrigin = ([x, y]: Vec) => {
     const c = canvas.current?.getBoundingClientRect(), w = page.current?.getBoundingClientRect();
@@ -126,13 +128,17 @@ function Game() {
         warp.current = { at: performance.now(), kind: "out" };
         // ship passes through the portal, then the next level starts on its own
         if (li < LEVELS.length - 1) {
-          setTimeout(() => setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }), 700);
+          // 1) page dives into the portal  2) hyperspace tunnel  3) page unfolds from the next start cell
+          setTimeout(() => { setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }); setTunnel(true); }, 650);
           setTimeout(() => {
             loadLevel(li + 1);
+            setPortalFx({ kind: "hidden", origin: "50% 50%" });
+          }, 1350);
+          setTimeout(() => {
             setPortalFx({ kind: "exit", origin: cellOrigin(LEVELS[li + 1]!.ship) });
             warp.current = { at: performance.now(), kind: "in" }; play("power");
-            setTimeout(() => setPortalFx(null), 1100);
-          }, 1600);
+          }, 1750);
+          setTimeout(() => { setPortalFx(null); setTunnel(false); }, 2600);
         }
       }
       else if (r.event === "blackhole") lose("blackhole");
@@ -310,6 +316,7 @@ function Game() {
   return (
     <main className="relative min-h-screen px-4 py-8 text-foreground">
       <Starfield />
+      {tunnel && <WarpTunnel duration={1950} />}
       <div
         ref={page}
         style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
@@ -321,7 +328,7 @@ function Game() {
         </header>
 
         <p className="goal-line mx-auto mb-4 max-w-2xl text-center text-xl">
-          <span className="font-pixel text-xs text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
+          <span className="font-pixel text-sm text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
         </p>
         <div className="mb-4 flex flex-wrap justify-center gap-2">
           {LEVELS.map((l, i) => (
@@ -333,7 +340,7 @@ function Game() {
 
         <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">
           <aside className="pixel-panel float-in order-2 md:order-1">
-            <h2 className="font-pixel mb-3 text-xs text-accent">MODULES</h2>
+            <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
             <div className="grid gap-2">
               {TYPES.map((t) => (
                 <button key={t} onClick={() => setTool(t)} className={`pixel-btn text-left ${tool === t ? "pixel-btn-active" : ""}`}>
@@ -349,7 +356,7 @@ function Game() {
           </aside>
 
           <div className="order-1 flex flex-col items-center md:order-2">
-            <div className="mb-3 flex w-full justify-between font-pixel text-xs">
+            <div className="mb-3 flex w-full justify-between font-pixel text-sm">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
             </div>
@@ -381,30 +388,30 @@ function Game() {
             </div>
             <div className="mt-3 flex w-full gap-2">
               {!flying && !won && (
-                <button onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-xs">▶ LAUNCH</button>
+                <button onClick={launch} className="pixel-btn pixel-btn-active flex-1 font-pixel text-sm">▶ LAUNCH</button>
               )}
-              {flying && <p className="flex-1 text-center text-lg text-accent">In flight. You can still place modules!</p>}
+              {flying && <p className="flex-1 text-center text-lg text-accent">Ship is moving — you can still place modules.</p>}
               <button onClick={() => loadLevel(li)} className="pixel-btn">Restart</button>
             </div>
-            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots = predicted path · click a thruster to rotate · right-click to remove</p>
+            <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click a thruster to turn it · Right-click a module to remove it</p>
           </div>
 
           <aside className="pixel-panel float-in order-3">
-            <h2 className="font-pixel mb-2 text-xs text-accent">MISSION</h2>
+            <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
-            <h2 className="font-pixel mb-2 mt-4 text-xs text-accent">HOW IT WORKS</h2>
+            <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
             <ol className="space-y-1 text-lg text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>· A thruster only fires the ship if its nozzle points at it. Click to rotate.</li>
-              <li>2. No friction: once moving, the ship glides until it hits something.</li>
-              <li>3. When it stops, the black hole pulls it down one cell at a time.</li>
-              <li>4. Fall into the purple bottom row and it's gone.</li>
-              <li>5. Three modules touching the ship at once overload it.</li>
-              {!sandbox && <li>6. Hit ¢0 mid-flight, or let the clock run out, and the black hole wins.</li>}
+              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Click a thruster to turn it.</li>
+              <li>3. No friction: once moving, the ship glides until it hits something.</li>
+              <li>4. When the ship stops, the black hole pulls it down one square at a time.</li>
+              <li>5. If it falls into the purple bottom row, it's gone.</li>
+              <li>6. Three modules touching the ship at once will overload it.</li>
+              {!sandbox && <li>7. Running out of credits (¢) or time also loses the level.</li>}
             </ol>
             {won && li === LEVELS.length - 1 && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
-                <p className="font-pixel text-xs text-success">ESCAPED!</p>
+                <p className="font-pixel text-sm text-success">ESCAPED!</p>
                 <p className="mt-2 text-lg">Build anything you like, or start again from Training.</p>
                 <button onClick={() => loadLevel(0)} className="pixel-btn mt-3 w-full">Play again</button>
                 {li < LEVELS.length - 1 && (
