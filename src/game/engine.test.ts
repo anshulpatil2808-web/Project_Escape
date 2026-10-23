@@ -8,6 +8,16 @@ const build = (li: number, mods: Mod[]) => {
   return { g, d };
 };
 
+/** Solver-verified cheapest solutions (brute force over every placement). */
+const SOLUTIONS: Mod[][] = [
+  [[0, 2, "thruster", 1]],
+  [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
+  [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
+  [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
+  [[5, 1, "thruster", 3], [2, 2, "thruster", 3], [4, 5, "thruster", 0]],
+];
+const costOf = (mods: Mod[]) => mods.reduce((s, m) => s + MODS[m[2] as ModType].cost, 0);
+
 describe("drift rules", () => {
   it("ends with Gravity Well after five missions, without Free Drift", () => {
     expect(LEVELS.length).toBe(5);
