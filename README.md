@@ -1,69 +1,63 @@
-# Project Escape
+# Project Escape 🚀
 
-**Project Escape** is a space-themed puzzle game built around **Drift**, a simple rule with a strategic twist: once launched, your ship keeps gliding until an object stops it. When the ship comes to rest, a black hole below pulls it one cell closer. Your goal is to place and rotate modules so the ship reaches the escape portal before time, credits, or the ship itself runs out.
+A space puzzle game where you guide a drifting spaceship to an escape portal.
 
-Created by **Shravan Patil and Anshul Patil** for **Pixathon**, under the theme *“Any puzzle, your rules.”*
+## How to Play
 
-## Gameplay at a glance
+1. Place modules on the board to guide the ship.
+2. Click a module or use the arrow controls to rotate it. Rotating is free.
+3. Press **Launch**. The ship keeps moving until a module stops or changes its direction.
+4. Reach the portal before time or credits run out.
 
-1. **Plan your route.** Place modules on the board to shape how the ship will move.
-2. **Set their direction.** Click a placed module to rotate it, or use the selected module’s arrow controls. Rotation is free.
-3. **Launch the ship.** The ship drifts until a module changes or stops its movement.
-4. **Reach the portal.** Navigate the level while managing your credits and the mission timer.
+## Modules
 
-### Modules
+- **Thruster:** Pushes a nearby ship when correctly aligned.
+- **Anchor:** Holds the ship in the square its glowing face points toward.
+- **Bumper:** Stops the ship on its padded side and reflects it from the other sides.
 
-- **Thruster** — pushes an adjacent ship away when both are aligned on the same axis and the flame points toward or away from the ship.
-- **Anchor** — holds the ship only in the adjacent square toward which its glowing face points.
-- **Bumper** — stops the ship on its padded face and reflects it when it hits another side.
+## How You Lose
 
-### Lose conditions
+The mission fails if:
 
-A mission ends in failure if any of these happens:
+- The ship reaches the glowing bottom row (the event horizon).
+- Three modules touch the ship at once.
+- You run out of credits during flight.
+- The timer reaches zero.
 
-- The ship falls into the event horizon, represented by the glowing bottom row.
-- Three modules touch the ship at the same time.
-- You run out of credits during flight. Removing a module restores its full cost.
-- The mission timer reaches zero.
-
-When a mission fails, the screen collapses into a pixelated black hole. Select **Try again** to trigger a white-hole-style restart effect and return to the mission.
+Removing a module restores its full cost. After a failed mission, select **Try again** to restart.
 
 ## Levels
 
-Progress through five missions, each designed to introduce or test different movement challenges:
+Play through five missions:
 
-1. **Training**
-2. **Cold Start**
-3. **Ricochet**
-4. **High Orbit**
-5. **Gravity Well**
+1. Training
+2. Cold Start
+3. Ricochet
+4. High Orbit
+5. Gravity Well
 
-Completing **Gravity Well** unlocks the exit screen, where you can replay or return to the launch screen. Each mission has a tested solution that fits within its credit budget.
+Finish **Gravity Well** to unlock the exit screen, where you can replay or return to the launch screen. Every level has a tested solution within its credit budget.
 
-## Run locally
+## Run the Game Locally
 
-You’ll need Node.js and npm installed.
+You’ll need Node.js and npm.
 
-```sh
+```bash
 git clone https://github.com/anshulpatil2808-web/Project_Escape.git
 cd Project_Escape
 npm install
 npm run dev
 ```
 
-## Development
+## For Developers
 
-The game separates its rules from its interface:
+- Game rules: `src/game/engine.ts`
+- Engine tests: `src/game/engine.test.ts`
+- Run tests: `bunx vitest run`
+- Visual effects use small canvases scaled up for a pixelated look.
 
-- Core puzzle logic lives in `src/game/engine.ts`, in the `step()` function.
-- Engine tests live in `src/game/engine.test.ts` and can be run with `bunx vitest run`.
-- The UI renders the game and advances its ticks; game rules are kept out of the UI.
-- Black-hole and white-hole effects are drawn on small canvases and scaled with `image-rendering: pixelated` for a crisp pixel-art look.
+## Credits
 
-## Built with
+Created by **Shravan Patil and Anshul Patil** for **Pixathon**, with the theme *“Any puzzle, your rules.”*
 
-- [Lovable](https://lovable.dev)
-
----
-
-Have fun plotting your escape among the stars! 🚀
+Built with [Lovable](https://lovable.dev).
