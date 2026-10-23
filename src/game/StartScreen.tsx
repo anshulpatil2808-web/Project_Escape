@@ -109,12 +109,6 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const bump = since >= 0 ? 14 * Math.exp(-since * 4) * Math.min(1, since * 12) : 0;
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
       if (since >= 0 && since < 0.05) { c.fillStyle = "rgba(255,240,200,0.22)"; c.fillRect(0, 0, W, H); }
-      if (since >= 0 && since < 0.2) {
-        const k = 1 + Math.round(since * 30);
-        px(15 - k, 45 - k, k * 2, k * 2, since < 0.08 ? "#fff4d0" : "#ffb347");
-        px(15 - k * 2, 45, k * 4, 1, "#fff4d0");
-        px(15, 45 - k * 2, 1, k * 4, "#fff4d0");
-      }
       const climb = launchAt.current ? Math.min(52, lt * lt * 45) - bump : Math.sin(now / 600) * 0.5;
       const rx = 11 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 30 - climb + shake;
       // rocket: the uploaded pixel-art fighter (simple silhouette until it loads)
@@ -124,6 +118,19 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
         px(rx + 1, ry, 4, 20, "#e8f0ff");
         px(rx - 1, ry + 12, 2, 8, "#ff5a5a");
         px(rx + 5, ry + 12, 2, 8, "#ff5a5a");
+      }
+      // impact burst follows the nose
+      if (since >= 0 && since < 0.22) {
+        const k = 2 + Math.round(since * 26);
+        const bx = rx + 3, by = ry - 2;
+        px(bx - k, by, k, 1, "#fff4d0");
+        px(bx + 1, by, k, 1, "#ffb347");
+        px(bx, by - k, 1, k, "#fff4d0");
+        px(bx, by + 1, 1, k, "#ffb347");
+        px(bx - k - 1, by - k - 1, 2, 2, "#fff4d0");
+        px(bx + k, by - k - 1, 2, 2, "#ffb347");
+        px(bx - k - 1, by + k, 2, 2, "#ffb347");
+        px(bx + k, by + k, 2, 2, "#fff4d0");
       }
       // flame only once the engines fire
       const flame = launchAt.current ? 8 + Math.random() * 10 : 0;
