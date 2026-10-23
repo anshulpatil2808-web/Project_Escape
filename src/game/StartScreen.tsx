@@ -49,7 +49,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       // nebula haze (dithered starry lighting)
       for (let y = 0; y < 70; y += 2) for (let x = (y / 2) % 2 ? 0 : 1; x < W; x += 2) {
         const d = Math.hypot(x - 40, y - 35) / 40;
-        if (d < 1 && Math.random() > d) px(x, y, 1, 1, d < 0.5 ? "#2a1450" : "#150a2e");
+        if (d < 1 && ((x * 73 + y * 151) % 97) / 97 > d) px(x, y, 1, 1, d < 0.5 ? "#2a1450" : "#150a2e");
       }
       // twinkling bright stars with cross flares
       for (const g of glows) {
