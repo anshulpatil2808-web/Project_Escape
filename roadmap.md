@@ -29,4 +29,4 @@
 - [x] Use the newly uploaded picture as the ship the thrusters, anchor and bumper move
 - [x] Even-sized, readable level and module panels on mobile and desktop
 - [x] A module's visible turn should point the way it sends the ship
-- [ ] Dancing pixel aliens filling the empty space under the board
+- [x] Dancing pixel aliens filling the empty space under the board
