@@ -92,6 +92,8 @@ function Game() {
   const [won, setWon] = useState(false);
   const [finished, setFinished] = useState(false);
   const [ufo, setUfo] = useState(false);
+  /** highest mission index the player may open; beating a mission unlocks the next */
+  const [unlocked, setUnlocked] = useState(0);
   const [wallet, setWallet] = useState(LEVELS[0]!.budget);
   const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
   const [lost, setLost] = useState<Loss | null>(null);
@@ -140,6 +142,7 @@ function Game() {
       setVel(r.vel);
       if (r.event === "portal") {
         setWon(true); setFlying(false); play("win");
+        setUnlocked((u) => Math.max(u, li + 1));
         warp.current = { at: performance.now(), kind: "out" };
         // ship passes through the portal, then the next level starts on its own
         if (li < LEVELS.length - 1) {
@@ -432,8 +435,8 @@ function Game() {
         </p>
         <div className="mb-4 flex flex-wrap justify-center gap-2">
           {LEVELS.map((l, i) => (
-            <Button variant="pixel" key={l.name} disabled={locked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
-              {i + 1}. {l.name}
+            <Button variant="pixel" key={l.name} disabled={locked || i > unlocked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
+              {i + 1}. {l.name}{i > unlocked ? " · LOCKED" : ""}
             </Button>
           ))}
         </div>
