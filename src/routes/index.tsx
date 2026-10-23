@@ -11,6 +11,7 @@ import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
 import { WhiteHole } from "@/game/WhiteHole";
 import { ExitScreen } from "@/game/ExitScreen";
+import { UfoCapture } from "@/game/UfoCapture";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
@@ -90,6 +91,7 @@ function Game() {
   const [flying, setFlying] = useState(false);
   const [won, setWon] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [ufo, setUfo] = useState<{ module: ModType | null; cell: Vec | null } | null>(null);
   const [wallet, setWallet] = useState(LEVELS[0]!.budget);
   const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
   const [lost, setLost] = useState<Loss | null>(null);
@@ -114,7 +116,7 @@ function Game() {
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
-  const locked = !started || !!lost || emerging || !!portalFx || tunnel || finished;
+  const locked = !started || !!lost || emerging || !!portalFx || tunnel || finished || !!ufo;
   const live = { grid, dirs, ship, vel, level, flying, li, won, tool, locked };
   const queueTransition = (action: () => void, delay: number) => { transitionTimers.current.push(setTimeout(action, delay)); };
   useEffect(() => () => transitionTimers.current.forEach(clearTimeout), []);
@@ -175,7 +177,18 @@ function Game() {
   }, [flying, sandbox]);
   useEffect(() => {
     if (!flying || sandbox) return;
-    if (timeLeft <= 0) lose("time");
+    if (timeLeft <= 0) {
+      setFlying(false);
+      let target: { module: ModType | null; cell: Vec | null } = { module: null, cell: null };
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          const module = grid[y]?.[x];
+          if (module === "thruster" || module === "shield" || module === "comms") { target = { module, cell: [x, y] }; break; }
+        }
+        if (target.cell) break;
+      }
+      setUfo(target); play("warn");
+    }
     else if (timeLeft <= 5) play("warn");
   }, [timeLeft]);
 
@@ -383,6 +396,7 @@ function Game() {
     if (!l) return;
     setSelected(null);
     setFinished(false);
+    setUfo(null);
     warp.current = null;
     impact.current = null;
     popped.current.clear();
@@ -523,6 +537,11 @@ function Game() {
       {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => { loadLevel(li); setEmerging(true); play("power"); }} />}
       {emerging && <WhiteHole onDone={() => setEmerging(false)} />}
       {finished && <ExitScreen onReplay={() => { loadLevel(0); setEmerging(true); }} onExit={() => { loadLevel(0); setStarted(false); }} />}
+      {ufo && <UfoCapture module={ufo.module} onDone={() => {
+        const cell = ufo.cell;
+        if (cell) setGrid((g) => g.map((row, y) => row.map((value, x) => x === cell[0] && y === cell[1] ? null : value)));
+        setUfo(null); lose("time");
+      }} />}
     </main>
   );
 }

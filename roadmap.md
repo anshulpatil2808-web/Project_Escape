@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] UFO grabs a module on timeout and drops it into the void
+- [ ] Explain GitHub sync handoff (agent cannot push or verify sync)
 - [x] Remove Free Drift; Gravity Well is final mission with a dedicated exit screen
 - [x] Replace bumper, anchor, asteroid and thruster artwork with uploaded images
 - [x] Removing a module restores its full cost (2 → 0 → 2); rotation stays free

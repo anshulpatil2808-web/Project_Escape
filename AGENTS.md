@@ -15,5 +15,6 @@
 - Directional module faces share engine predicates with canvas feedback; all placed modules use one rotation control. Why: keeps visual direction consistent with the actual rules.
 - Uploaded module artwork is served through asset pointers and loaded lazily for canvas drawing, with procedural fallbacks. Why: avoids browser-only imports during SSR and keeps play usable while images load.
 - The final mission transitions to ExitScreen; exiting returns to the launch screen rather than closing a browser tab. Why: browser tabs cannot reliably be closed by game code.
+- Timeout pauses flight and runs UfoCapture before the normal time-loss screen without changing refunds or countdown limits. Why: the cinematic cannot race the simulation.
 - Screen transitions lock editing/navigation and own cancellable timers; white-hole emergence includes background and footer. Why: avoids stale level changes and disconnected screen fragments.
 - Levels are generated/validated by brute-force search over module placements; each test case records a solution and budget equals the cheapest one. Why: guarantees hard levels stay solvable.
