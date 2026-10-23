@@ -141,7 +141,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       // smoke clouds
       const rate = launchAt.current ? 6 : 0.3;
       for (let i = 0; i < rate; i++)
-        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 26 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
+        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 30 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
       for (let i = smoke.length - 1; i >= 0; i--) {
         const s = smoke[i]!;
         s.x += s.vx; s.y += s.vy; s.vx *= 0.97; s.l--;
