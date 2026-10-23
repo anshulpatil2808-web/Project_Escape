@@ -109,21 +109,39 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
       if (since >= 0 && since < 0.08) { c.fillStyle = "rgba(255,240,200,0.5)"; c.fillRect(0, 0, W, H); }
       const climb = launchAt.current ? lt * lt * 70 - bump : Math.sin(now / 600) * 0.5;
-      const rx = 78 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 34 - climb + shake;
-      px(rx, ry, 6, 26, "#e8f0ff");
-      px(rx + 1, ry - 4, 4, 4, "#e8f0ff");
-      px(rx + 2, ry - 6, 2, 2, "#ff5a5a");
-      px(rx + 2, ry + 6, 2, 3, "#5ef2ff");
-      px(rx - 3, ry + 18, 3, 8, "#ff5a5a");
-      px(rx + 6, ry + 18, 3, 8, "#ff5a5a");
+      const rx = 78 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 40 - climb + shake;
+      // nose cone (tapering red)
+      px(rx + 2, ry - 8, 2, 2, "#ff5a5a");
+      px(rx + 1, ry - 6, 4, 2, "#ff7a6a");
+      px(rx, ry - 4, 6, 3, "#ff5a5a");
+      // hull with side shading
+      px(rx, ry - 1, 6, 27, "#e8f0ff");
+      px(rx, ry - 1, 1, 27, "#b8c4d8");
+      px(rx + 5, ry - 1, 1, 27, "#c8d4e8");
+      // porthole
+      px(rx + 1, ry + 4, 4, 4, "#8a9bb3");
+      px(rx + 2, ry + 5, 2, 2, "#5ef2ff");
+      // racing stripe
       px(rx, ry + 12, 6, 1, "#8a9bb3");
-      const flame = launchAt.current ? 10 + Math.random() * 10 : 2 + Math.random() * 2;
-      px(rx + 1, ry + 26, 4, flame, "#ffb347");
-      px(rx + 2, ry + 26, 2, flame * 0.6, "#fff4d0");
+      px(rx, ry + 13, 6, 2, "#ff5a5a");
+      // fins tapering outward
+      px(rx - 2, ry + 18, 2, 10, "#ff5a5a");
+      px(rx - 2, ry + 16, 1, 3, "#ff5a5a");
+      px(rx + 6, ry + 18, 2, 10, "#ff5a5a");
+      px(rx + 7, ry + 16, 1, 3, "#ff5a5a");
+      // engine bell
+      px(rx + 1, ry + 26, 4, 3, "#5b6b82");
+      px(rx + 2, ry + 29, 2, 1, "#3a4150");
+      // flame only once the engines fire
+      const flame = launchAt.current ? 8 + Math.random() * 10 : 0;
+      if (flame > 0) {
+        px(rx + 1, ry + 30, 4, flame, "#ffb347");
+        px(rx + 2, ry + 30, 2, flame * 0.6, "#fff4d0");
+      }
       // smoke clouds
       const rate = launchAt.current ? 6 : 0.3;
       for (let i = 0; i < rate; i++)
-        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 26 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
+        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 30 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
       for (let i = smoke.length - 1; i >= 0; i--) {
         const s = smoke[i]!;
         s.x += s.vx; s.y += s.vy; s.vx *= 0.97; s.l--;

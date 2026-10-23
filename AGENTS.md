@@ -17,4 +17,4 @@
 - The final mission transitions to ExitScreen; exiting returns to the launch screen rather than closing a browser tab. Why: browser tabs cannot reliably be closed by game code.
 - Timeout pauses flight and runs UfoCapture before the normal time-loss screen without changing refunds or countdown limits. Why: the cinematic cannot race the simulation.
 - Screen transitions lock editing/navigation and own cancellable timers; white-hole emergence includes background and footer. Why: avoids stale level changes and disconnected screen fragments.
-- Levels are generated/validated by brute-force search over module placements; each test case records a solution and budget equals the cheapest one. Why: guarantees hard levels stay solvable.
+- Levels are validated in engine.test.ts by simulating a recorded solution; each budget must be at least the cheapest solution's cost. Budgets follow the user's progression (2 coins on Training, +3 per mission) and may exceed the cheapest solution. Why: guarantees hard levels stay solvable while coins escalate as the user wants.
