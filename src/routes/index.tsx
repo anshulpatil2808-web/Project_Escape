@@ -273,7 +273,15 @@ function Game() {
       // ship
       const [sx, sy] = ship;
       const bob = Math.round(Math.sin(t / 180));
-      const ox = sx * TILE, oy = sy * TILE + bob;
+      // glide between cells instead of jumping one cell per tick
+      if (!shipGlide.current || shipGlide.current.to[0] !== sx || shipGlide.current.to[1] !== sy) {
+        shipGlide.current = { from: shipGlide.current?.to ?? ([sx, sy] as Vec), to: [sx, sy], at: performance.now() };
+      }
+      const gl = shipGlide.current;
+      const gk = Math.min(1, (performance.now() - gl.at) / TICK);
+      const ge = 1 - Math.pow(1 - gk, 3);
+      const ox = (gl.from[0] + (gl.to[0] - gl.from[0]) * ge) * TILE;
+      const oy = (gl.from[1] + (gl.to[1] - gl.from[1]) * ge) * TILE + bob;
       const w = warp.current;
       const wt = w ? (performance.now() - w.at) / 1000 : 9;
       c.save();
