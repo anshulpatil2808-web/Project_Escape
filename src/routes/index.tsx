@@ -169,14 +169,14 @@ function Game() {
     return () => clearInterval(id);
   }, [flying, lost, won]);
 
-  // countdown while flying
+  // the clock runs the whole time a mission is open — planning included
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (sandbox || !started || lost || won || finished) return;
     const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(id);
-  }, [flying, sandbox]);
+  }, [sandbox, started, lost, won, finished]);
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (sandbox || !started || lost || won || finished) return;
     if (timeLeft <= 0) {
       setFlying(false);
       let target: { module: ModType | null; cell: Vec | null } = { module: null, cell: null };
