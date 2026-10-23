@@ -5,6 +5,7 @@ import { drawCell } from "@/game/sprites";
 import { LEVELS, MODS, SIZE, computePower, goalProgress, makeGrid, maxSurplus, moduleCount, inHorizon, refund, type Cell, type ModType } from "@/game/engine";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
+import { WhiteHole } from "@/game/WhiteHole";
 
 type Loss = "credits" | "time" | "overload";
 const LOSS_TEXT: Record<Loss, string> = {
@@ -40,6 +41,7 @@ function Game() {
   const [wallet, setWallet] = useState(LEVELS[0]!.budget);
   const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
   const [lost, setLost] = useState<Loss | null>(null);
+  const [emerging, setEmerging] = useState(false);
 
   const powered = useMemo(() => computePower(grid), [grid]);
   const { counts, done } = goalProgress(grid, level, powered);
@@ -159,7 +161,7 @@ function Game() {
   return (
     <main className="relative min-h-screen px-4 py-8 text-foreground">
       <Starfield />
-      <div className={`mx-auto max-w-5xl ${lost ? "page-sucked" : ""}`}>
+      <div className={`mx-auto max-w-5xl ${lost ? "page-sucked" : emerging ? "page-emerge" : ""}`}>
         <header className="mb-6 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Build fast. Spend wisely. Don't fall into the black hole.</p>
@@ -247,7 +249,8 @@ function Game() {
           </aside>
         </div>
       </div>
-      {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => loadLevel(li)} />}
+      {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => { loadLevel(li); setEmerging(true); play("power"); }} />}
+      {emerging && <WhiteHole onDone={() => setEmerging(false)} />}
     </main>
   );
 }
