@@ -28,3 +28,4 @@
 - [x] Timers: +20s per mission (20/40/60/80/100s)
 - [ ] Use the newly uploaded picture as the ship the thrusters, anchor and bumper move
 - [ ] Even-sized, readable level and module panels on mobile and desktop
+- [ ] A module's visible turn should point the way it sends the ship
