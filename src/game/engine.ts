@@ -11,7 +11,7 @@ export type Vec = [number, number];
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
   thruster: { name: "Pusher", cost: 2, desc: "Pushes the ship away when it's next to it" },
   shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it" },
-  comms: { name: "Beacon", cost: 3, desc: "Pulls the ship toward it from 2 cells away" },
+  comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it" },
 };
 
 export const SIZE = 7;
@@ -31,8 +31,8 @@ export interface Level {
 export const LEVELS: Level[] = [
   { name: "First Push", brief: "Push the ship sideways into the portal.", budget: 6, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
   { name: "Falling Catch", brief: "A rock blocks the way. Let it fall, then catch it.", budget: 6, time: 30, ship: [1, 1], portal: [5, 4], rocks: [[5, 1]] },
-  { name: "Beacon Bend", brief: "Bend the ship's path around the asteroids.", budget: 9, time: 40, ship: [0, 1], portal: [6, 4], rocks: [[3, 1], [4, 3], [5, 3]] },
-  { name: "Long Haul", brief: "Climb away from the black hole to the top.", budget: 12, time: 45, ship: [3, 4], portal: [3, 0], rocks: [[2, 2], [4, 2]] },
+  { name: "Rock Landing", brief: "Let the ship land on the rock, then launch it.", budget: 6, time: 30, ship: [1, 1], portal: [6, 3], rocks: [[1, 4], [3, 2], [5, 4]] },
+  { name: "Long Haul", brief: "Climb away from the black hole, then turn the corner.", budget: 8, time: 40, ship: [3, 4], portal: [6, 1], rocks: [[2, 2], [4, 2]] },
   { name: "Free Drift", brief: "Sandbox. Unlimited credits, no clock.", budget: 999, time: 0, ship: [3, 2], portal: [6, 0], rocks: [] },
 ];
 
@@ -65,19 +65,8 @@ export function step(g: Cell[][], level: Level, ship: Vec, vel: Vec): StepResult
   const pushers = adj.filter((n) => n.c === "thruster");
   if (pushers.length) {
     v = pushers.reduce<Vec>((a, p) => [a[0] + (sx - p.x), a[1] + (sy - p.y)], [0, 0]);
-  } else {
-    // 4. A beacon within 2 cells pulls the ship toward it
-    let best: { x: number; y: number; d: number } | null = null;
-    g.forEach((row, y) => row.forEach((c, x) => {
-      const d = Math.abs(x - sx) + Math.abs(y - sy);
-      if (c === "comms" && d <= 2 && d > 0 && (!best || d < best.d)) best = { x, y, d };
-    }));
-    if (best) {
-      const b = best as { x: number; y: number };
-      v = [Math.sign(b.x - sx), Math.sign(b.y - sy)];
-    }
   }
-  // 5. Not moving at all? The black hole pulls it down
+  // 4. Not moving at all? The black hole pulls it down
   if (v[0] === 0 && v[1] === 0) v = [0, 1];
   // One axis per tick: the stronger one wins, ties go vertical
   v = Math.abs(v[0]) > Math.abs(v[1]) ? [Math.sign(v[0]), 0] : [0, Math.sign(v[1])];
