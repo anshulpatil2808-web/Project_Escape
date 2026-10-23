@@ -18,8 +18,11 @@
 - [x] Win: ship spirals through portal, next level loads automatically
 - [x] Footer credit: Made by Shravan Patil and Anshul Patil
 - [x] Rocket-launch start screen (Space / tap), checked on phone size
-- [ ] Swap in user's sound files (blocked: files not uploaded yet)
+- [x] Swap in user's sound files (checkpoint on clear, void on loss)
 - [x] Redesign level-clear warp (page dives into portal, emerges from next start)
 - [x] Bug sweep, clearer/larger wording, recheck hackathon checklist
 - [x] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations
 - [x] Fill more of the screen; add background comets
+- [ ] Solve every mission with a brute-force solver; set budget and time from the cheapest solution
+- [ ] Make the animations smoother
+- [ ] Use the new uploads: UFO art in the timeout kill screen, rocket on the welcome screen, capsule as the crew module thrown into the void
