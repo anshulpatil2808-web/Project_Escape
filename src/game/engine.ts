@@ -54,6 +54,14 @@ export function facesShip(dirs: number[][], x: number, y: number, ship: Vec) {
   const direction = DIRS[dirs[y]?.[x] ?? 1];
   return !!direction && x + direction[0] === ship[0] && y + direction[1] === ship[1];
 }
+/** The way this thruster sends the ship (0 up, 1 right, 2 down, 3 left), or null when it can't drive it. */
+export function thrustPush(dirs: number[][], x: number, y: number, ship: Vec): number | null {
+  const ax = ship[0] - x, ay = ship[1] - y;
+  if (Math.abs(ax) + Math.abs(ay) !== 1) return null;
+  const [dx, dy] = DIRS[dirs[y]?.[x] ?? 1]!;
+  if (!(dx === ax && dy === ay) && !(dx === -ax && dy === -ay)) return null;
+  return DIRS.findIndex(([ux, uy]) => ux === ax && uy === ay);
+}
 const N4: Vec[] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 export function neighbours(g: Cell[][], [sx, sy]: Vec) {
