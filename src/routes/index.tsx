@@ -374,7 +374,7 @@ function Game() {
   };
 
   return (
-    <main className="relative min-h-screen px-4 py-8 text-foreground">
+    <main className="relative min-h-screen px-3 py-4 text-foreground lg:px-6">
       <Starfield />
       {tunnel && <WarpTunnel duration={1950} />}
       <div
@@ -382,7 +382,7 @@ function Game() {
         style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
         className={`mx-auto max-w-[1700px] ${lost ? "page-sucked" : emerging ? "page-emerge" : portalFx ? `page-portal-${portalFx.kind}` : ""}`}
       >
-        <header className="mb-6 text-center">
+        <header className="mb-3 text-center">
           <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
           <p className="mt-2 text-xl text-muted-foreground">Your ship has no brakes. The black hole is hungry. Steer it home.</p>
         </header>
