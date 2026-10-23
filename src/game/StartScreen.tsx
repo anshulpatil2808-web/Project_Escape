@@ -31,6 +31,8 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
     const stars = Array.from({ length: 90 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() }));
     const glows = Array.from({ length: 10 }, () => ({ x: Math.random() * W, y: Math.random() * 70, p: Math.random() * 6 }));
     const rocks = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * W, y: 10 + i * 14, v: 0.05 + Math.random() * 0.08, s: 2 + (i % 3) }));
+    let hitAt: number | null = null;
+    const debris: { x: number; y: number; vx: number; vy: number; l: number }[] = [];
     let comet = { x: -20, y: 0, t: 0 };
     const smoke: { x: number; y: number; vx: number; vy: number; l: number }[] = [];
     let raf = 0;
@@ -49,7 +51,8 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       // nebula haze (dithered starry lighting)
       for (let y = 0; y < 70; y += 2) for (let x = (y / 2) % 2 ? 0 : 1; x < W; x += 2) {
         const d = Math.hypot(x - 40, y - 35) / 40;
-        if (d < 1 && ((x * 73 + y * 151) % 97) / 97 > d) px(x, y, 1, 1, d < 0.5 ? "#2a1450" : "#150a2e");
+        const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5][((y / 2) % 4) * 4 + ((x >> 1) % 4)]! / 16;
+        if (d < 1 && bayer > d) px(x, y, 1, 1, d < 0.5 ? "#2a1450" : "#150a2e");
       }
       // twinkling bright stars with cross flares
       for (const g of glows) {
@@ -82,8 +85,30 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       for (let y = 0; y < 26; y += 4) px(70 + shake, groundY - 30 + y + shake, 6, 1, "#5b6b82");
 
       // rocket
-      const climb = launchAt.current ? lt * lt * 70 : Math.sin(now / 600) * 0.5;
-      const rx = 78 + shake, ry = groundY - 34 - climb + shake;
+      // asteroid that crosses the launch path and smacks the rocket
+      const HIT = 0.7;
+      if (launchAt.current && lt > 0.2) {
+        const t = lt - 0.2;
+        const ax = hitAt === null ? 150 - (t / (HIT - 0.2)) * 69 : 81 + (lt - hitAt) * 90;
+        const ay = hitAt === null ? 30 + t * 12 : 36 + (lt - hitAt) * 40;
+        if (hitAt === null && lt >= HIT) {
+          hitAt = lt; play("remove");
+          for (let i = 0; i < 18; i++) debris.push({ x: 82, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
+        }
+        px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); px(ax - 1, ay - 2, 2, 2, "#a08870"); px(ax + 1, ay + 1, 2, 1, "#3a2c20");
+      }
+      for (let i = debris.length - 1; i >= 0; i--) {
+        const d = debris[i]!; d.x += d.vx; d.y += d.vy; d.vy += 0.05; d.l--;
+        px(d.x, d.y, 1, 1, d.l > 20 ? "#fff4d0" : d.l > 10 ? "#ffb347" : "#6b5a4a");
+        if (d.l <= 0) debris.splice(i, 1);
+      }
+      // impact: knocked back down, then recovers
+      const since = hitAt === null ? -1 : lt - hitAt;
+      const bump = since >= 0 ? 14 * Math.exp(-since * 4) * Math.min(1, since * 12) : 0;
+      const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
+      if (since >= 0 && since < 0.08) { c.fillStyle = "rgba(255,240,200,0.5)"; c.fillRect(0, 0, W, H); }
+      const climb = launchAt.current ? lt * lt * 70 - bump : Math.sin(now / 600) * 0.5;
+      const rx = 78 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 34 - climb + shake;
       px(rx, ry, 6, 26, "#e8f0ff");
       px(rx + 1, ry - 4, 4, 4, "#e8f0ff");
       px(rx + 2, ry - 6, 2, 2, "#ff5a5a");
