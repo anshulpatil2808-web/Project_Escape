@@ -27,3 +27,4 @@
 - [ ] Lock later missions until the previous one is beaten
 - [ ] Make the animations smoother
 - [ ] Use the new uploads: UFO art in the timeout kill screen, rocket on the welcome screen, capsule as the crew module thrown into the void
+- [ ] Use the newest upload as the ship the modules move on the board
