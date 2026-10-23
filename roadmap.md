@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Investigate and correct the physics issue shown in image-8.png
 - [ ] Highlight the Project Escape title
 - [ ] Add uploaded checkpoint and void sound effects
 - [ ] Balance game panels and add dancing pixel aliens; verify desktop and narrow screens
