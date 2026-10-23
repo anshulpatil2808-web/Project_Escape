@@ -1,3 +1,4 @@
+import { WarpTunnel } from "@/game/WarpTunnel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
@@ -92,7 +93,8 @@ function Game() {
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const page = useRef<HTMLDivElement>(null);
-  const [portalFx, setPortalFx] = useState<{ kind: "enter" | "exit"; origin: string } | null>(null);
+  const [portalFx, setPortalFx] = useState<{ kind: "enter" | "hidden" | "exit"; origin: string } | null>(null);
+  const [tunnel, setTunnel] = useState(false);
   // where a grid cell sits inside the page wrapper, used as the warp's vanishing point
   const cellOrigin = ([x, y]: Vec) => {
     const c = canvas.current?.getBoundingClientRect(), w = page.current?.getBoundingClientRect();
@@ -126,13 +128,17 @@ function Game() {
         warp.current = { at: performance.now(), kind: "out" };
         // ship passes through the portal, then the next level starts on its own
         if (li < LEVELS.length - 1) {
-          setTimeout(() => setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }), 700);
+          // 1) page dives into the portal  2) hyperspace tunnel  3) page unfolds from the next start cell
+          setTimeout(() => { setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }); setTunnel(true); }, 650);
           setTimeout(() => {
             loadLevel(li + 1);
+            setPortalFx({ kind: "hidden", origin: "50% 50%" });
+          }, 1350);
+          setTimeout(() => {
             setPortalFx({ kind: "exit", origin: cellOrigin(LEVELS[li + 1]!.ship) });
             warp.current = { at: performance.now(), kind: "in" }; play("power");
-            setTimeout(() => setPortalFx(null), 1100);
-          }, 1600);
+          }, 1750);
+          setTimeout(() => { setPortalFx(null); setTunnel(false); }, 2600);
         }
       }
       else if (r.event === "blackhole") lose("blackhole");
@@ -310,6 +316,7 @@ function Game() {
   return (
     <main className="relative min-h-screen px-4 py-8 text-foreground">
       <Starfield />
+      {tunnel && <WarpTunnel duration={1950} />}
       <div
         ref={page}
         style={portalFx ? { transformOrigin: portalFx.origin } : undefined}
