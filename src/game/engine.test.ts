@@ -10,8 +10,8 @@ const build = (li: number, mods: Mod[]) => {
 
 describe("drift rules", () => {
   it("a still ship falls into the black hole", () => {
-    const { g, d } = build(0, []);
-    expect(simulate(g, d, LEVELS[0]!)).toBe("blackhole");
+    const { g, d } = build(1, []);
+    expect(simulate(g, d, LEVELS[1]!)).toBe("blackhole");
   });
   it("a thruster only launches the ship when its blast faces the ship", () => {
     const facing = build(0, [[6, 2, "thruster", 3]]);
