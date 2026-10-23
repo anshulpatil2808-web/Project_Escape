@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Set the second level to 8 points
 - [ ] Investigate and correct the physics issue shown in image-8.png
 - [ ] Highlight the Project Escape title
 - [ ] Add uploaded checkpoint and void sound effects
