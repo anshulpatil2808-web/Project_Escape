@@ -13,11 +13,13 @@ describe("drift rules", () => {
     const { g, d } = build(2, []);
     expect(simulate(g, d, LEVELS[2]!)).toBe("blackhole");
   });
-  it("a thruster only launches the ship when its blast faces the ship", () => {
+  it("a lined-up thruster pushes the ship forward either way; sideways does nothing", () => {
     const facing = build(1, [[6, 2, "thruster", 3]]);
     expect(step(facing.g, facing.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
     const away = build(1, [[6, 2, "thruster", 1]]);
-    expect(step(away.g, away.d, LEVELS[1]!, [5, 2], [0, 0]).event).toBe("blocked"); // falls onto rock below
+    expect(step(away.g, away.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
+    const side = build(1, [[6, 2, "thruster", 0]]);
+    expect(step(side.g, side.d, LEVELS[1]!, [5, 2], [0, 0]).event).toBe("blocked"); // falls onto rock below
   });
   it("three modules touching the ship overload it", () => {
     const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
