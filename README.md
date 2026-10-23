@@ -1,24 +1,43 @@
-# Pixel Galaxy Puzzle
+# Project Escape
 
-I want to develop an open, innovative puzzle that lets us choose our own modules.The theme should be space, with a slightly pixelated style. I’d like pixel art that feels realistic and includes more movement. Could you build a prototype quickly?
+**Drift** — a frictionless puzzle. Your ship glides until something stops it, and the black hole below pulls it down one cell at a time the moment it comes to rest. Place and rotate your own modules to steer it into the escape portal.
 
-This project was built with [Lovable](https://lovable.dev).
+Made by Shravan Patil and Anshul Patil for Pixathon ("Any puzzle, your rules").
 
-## Build with Lovable
+## How it plays
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/d368fa72-90a2-4518-9810-ee123208227c).
+- **Thruster** — pushes the ship away along its flame. Click a placed thruster to rotate it a quarter turn, free of charge.
+- **Anchor** — holds the ship still while it sits next to it.
+- **Bumper** — stops the ship dead on contact.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+Press **Launch** and the ship drifts. Reach the portal before the black hole eats you.
 
-## Development
+### You lose when
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+- the ship falls into the event horizon (the glowing bottom row),
+- three modules touch the ship at once,
+- you run out of credits (removing a module only refunds half),
+- or the mission timer runs out.
+
+Losing sucks the whole screen into a pixelated black hole. **Try again** fires a white-hole fission burst and drops you back in.
+
+## Levels
+
+Training → Cold Start → Ricochet → High Orbit → Gravity Well, plus a Free Drift sandbox. Every level is generated and validated by brute-force search over module placements, so each budget equals the cheapest solution that exists and no level is unsolvable.
+
+## Run it locally
 
 ```sh
 git clone <this-repository-url>
-cd <repository-name>
+cd project-escape
 npm i
 npm run dev
 ```
+
+## Development notes
+
+- Puzzle rules are pure functions in `src/game/engine.ts` (`step()`), covered by `src/game/engine.test.ts` (`bunx vitest run`).
+- The UI only renders and ticks — it never contains rules.
+- Black/white hole effects draw on tiny canvases scaled up with `image-rendering: pixelated` for real pixelation.
+
+Built with [Lovable](https://lovable.dev).
