@@ -10,7 +10,7 @@ export function Starfield() {
       x: Math.random() * W, y: Math.random() * H, z: 1 + Math.floor(Math.random() * 3),
     }));
     const rocks = Array.from({ length: 4 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 2 + Math.random() * 3, v: 0.1 + Math.random() * 0.2 }));
-    let shoot = { x: -50, y: 0, life: 0 };
+    const comets = Array.from({ length: 3 }, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0, hue: 0 }));
     let raf = 0;
     const loop = (t: number) => {
       c.fillStyle = "#070914";
@@ -48,13 +48,22 @@ export function Starfield() {
         c.fillStyle = "#7a665a";
         c.fillRect(Math.floor(a.x), Math.floor(a.y), 1, 1);
       }
-      if (shoot.life <= 0 && Math.random() < 0.004) shoot = { x: Math.random() * W, y: Math.random() * 60, life: 40 };
-      if (shoot.life > 0) {
-        shoot.life--; shoot.x -= 3; shoot.y += 1;
-        for (let i = 0; i < 6; i++) {
-          c.fillStyle = `rgba(255,255,255,${1 - i / 6})`;
-          c.fillRect(Math.floor(shoot.x + i * 3), Math.floor(shoot.y - i), 1, 1);
+      // comets: glowing heads with long fading tails
+      for (const k of comets) {
+        if (k.life <= 0 && Math.random() < 0.006) {
+          const left = Math.random() < 0.5;
+          Object.assign(k, { x: left ? -10 : W + 10, y: Math.random() * H * 0.7, vx: (left ? 1 : -1) * (1.2 + Math.random() * 1.5), vy: 0.3 + Math.random() * 0.5, life: 260, hue: Math.random() < 0.5 ? 0 : 1 });
         }
+        if (k.life <= 0) continue;
+        k.life--; k.x += k.vx; k.y += k.vy;
+        if (k.x < -40 || k.x > W + 40 || k.y > H + 20) k.life = 0;
+        for (let i = 14; i >= 0; i--) {
+          const a = (1 - i / 15) * 0.9;
+          c.fillStyle = k.hue ? `rgba(127,240,255,${a})` : `rgba(255,190,120,${a})`;
+          c.fillRect(Math.floor(k.x - k.vx * i * 1.2), Math.floor(k.y - k.vy * i * 1.2), 1, 1);
+        }
+        c.fillStyle = "rgba(255,255,255,0.35)"; c.fillRect(Math.floor(k.x) - 1, Math.floor(k.y) - 1, 3, 3);
+        c.fillStyle = "#ffffff"; c.fillRect(Math.floor(k.x), Math.floor(k.y), 1, 1);
       }
       raf = requestAnimationFrame(loop);
     };
