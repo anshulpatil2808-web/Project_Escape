@@ -33,13 +33,14 @@ export interface Level {
 }
 
 // Every level is checked by a solver (engine.test.ts): budget must cover the cheapest solution.
-// Coins start at 6 and grow by 4 per mission; flight time starts at 20s and grows by 20s per mission.
+// Coins start at 6 and grow by 4 per mission; the clock starts at 30s and grows by 20s per mission.
+// Brute-forced cheapest solutions cost 2 / 3 / 3 / 3 / 5 coins and take 4 / 6 / 5 / 8 / 10 ticks.
 export const LEVELS: Level[] = [
-  { name: "Training", brief: "Put a thruster on the left of the ship, then press Launch.", budget: 6, time: 20, ship: [1, 2], portal: [5, 2], rocks: [] },
-  { name: "Cold Start", brief: "Only one route works. Plan your burns.", budget: 10, time: 40, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
-  { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 14, time: 60, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
-  { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 18, time: 80, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
-  { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 22, time: 100, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
+  { name: "Training", brief: "Put a thruster on the left of the ship, then press Launch.", budget: 6, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
+  { name: "Cold Start", brief: "Only one route works. Plan your burns.", budget: 10, time: 50, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
+  { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 14, time: 70, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
+  { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 18, time: 90, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
+  { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 22, time: 110, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
 ];
 
 export function makeGrid(level: Level): Cell[][] {
