@@ -34,6 +34,7 @@ export interface Level {
 
 // Every level is checked by a solver (engine.test.ts): budget equals the cheapest solution.
 export const LEVELS: Level[] = [
+  { name: "Training", brief: "Aim the thruster at the ship so its blast fires the ship right.", budget: 2, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
   { name: "Cold Start", brief: "Exact budget, and only one answer works.", budget: 3, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
   { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
   { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },

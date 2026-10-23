@@ -10,21 +10,22 @@ const build = (li: number, mods: Mod[]) => {
 
 describe("drift rules", () => {
   it("a still ship falls into the black hole", () => {
-    const { g, d } = build(1, []);
-    expect(simulate(g, d, LEVELS[1]!)).toBe("blackhole");
+    const { g, d } = build(2, []);
+    expect(simulate(g, d, LEVELS[2]!)).toBe("blackhole");
   });
   it("a thruster only launches the ship when its blast faces the ship", () => {
-    const facing = build(0, [[6, 2, "thruster", 3]]);
-    expect(step(facing.g, facing.d, LEVELS[0]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
-    const away = build(0, [[6, 2, "thruster", 1]]);
-    expect(step(away.g, away.d, LEVELS[0]!, [5, 2], [0, 0]).event).toBe("blocked"); // falls onto rock below
+    const facing = build(1, [[6, 2, "thruster", 3]]);
+    expect(step(facing.g, facing.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
+    const away = build(1, [[6, 2, "thruster", 1]]);
+    expect(step(away.g, away.d, LEVELS[1]!, [5, 2], [0, 0]).event).toBe("blocked"); // falls onto rock below
   });
   it("three modules touching the ship overload it", () => {
-    const { g, d } = build(0, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
-    expect(simulate(g, d, LEVELS[0]!)).toBe("overload");
+    const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
+    expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
   it("every mission is solvable within its exact budget", () => {
     const solutions: Mod[][] = [
+      [[0, 2, "thruster", 1]],
       [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
       [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
       [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
