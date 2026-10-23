@@ -9,5 +9,5 @@
 - [x] Footer credit: Made by Shravan Patil and Anshul Patil
 - [x] Rocket-launch start screen (Space / tap), checked on phone size
 - [ ] Swap in user's sound files (blocked: files not uploaded yet)
-- [ ] Redesign level-clear warp (page dives into portal, emerges from next start)
-- [ ] Bug sweep, clearer/larger wording, recheck hackathon checklist
+- [x] Redesign level-clear warp (page dives into portal, emerges from next start)
+- [x] Bug sweep, clearer/larger wording, recheck hackathon checklist
