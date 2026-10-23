@@ -9,6 +9,11 @@ const build = (li: number, mods: Mod[]) => {
 };
 
 describe("drift rules", () => {
+  it("ends with Gravity Well after five missions, without Free Drift", () => {
+    expect(LEVELS.length).toBe(5);
+    expect(LEVELS.at(-1)?.name).toBe("Gravity Well");
+    expect(LEVELS.some((level) => level.name === "Free Drift")).toBe(false);
+  });
   it.each([["thruster", 2], ["shield", 3], ["comms", 1]] as const)("removing %s restores its full %i-coin cost", (module, price) => {
     expect(price - price + refund(module)).toBe(price);
     expect(refund(module)).toBe(price);

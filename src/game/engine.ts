@@ -39,7 +39,6 @@ export const LEVELS: Level[] = [
   { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
   { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
   { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 6, time: 40, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
-  { name: "Free Drift", brief: "Sandbox. Unlimited credits, no clock.", budget: 999, time: 0, ship: [3, 2], portal: [6, 0], rocks: [] },
 ];
 
 export function makeGrid(level: Level): Cell[][] {

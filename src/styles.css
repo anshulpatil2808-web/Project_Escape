@@ -188,6 +188,11 @@
 .pixel-btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .pixel-btn-active { border-color: var(--primary); color: var(--primary); background: oklch(0.88 0.14 200 / 0.12); }
 .pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
+.board-column { min-width: 0; width: 100%; }
+.board-column .board-wrap { width: min(100%, 74vh, 788px); }
+.board-column canvas { width: 100%; }
+.exit-portal { width: 80px; height: 80px; border: 6px dashed var(--primary); border-radius: 50%; box-shadow: 0 0 24px var(--primary); animation: spin 9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .exit-portal { animation: none; } }
 
 :root { --hole: oklch(0.05 0.02 300); --hole-glow: oklch(0.7 0.25 320); }
 @theme inline { --color-hole-glow: var(--hole-glow); }

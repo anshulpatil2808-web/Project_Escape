@@ -10,6 +10,7 @@ import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
 import { WhiteHole } from "@/game/WhiteHole";
+import { ExitScreen } from "@/game/ExitScreen";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
@@ -88,6 +89,7 @@ function Game() {
   const [vel, setVel] = useState<Vec>([0, 0]);
   const [flying, setFlying] = useState(false);
   const [won, setWon] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [wallet, setWallet] = useState(LEVELS[0]!.budget);
   const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
   const [lost, setLost] = useState<Loss | null>(null);
@@ -112,7 +114,7 @@ function Game() {
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
-  const locked = !started || !!lost || emerging || !!portalFx || tunnel;
+  const locked = !started || !!lost || emerging || !!portalFx || tunnel || finished;
   const live = { grid, dirs, ship, vel, level, flying, li, won, tool, locked };
   const queueTransition = (action: () => void, delay: number) => { transitionTimers.current.push(setTimeout(action, delay)); };
   useEffect(() => () => transitionTimers.current.forEach(clearTimeout), []);
@@ -150,6 +152,9 @@ function Game() {
             warp.current = { at: performance.now(), kind: "in" }; play("power");
           }, 1750);
           queueTransition(() => { setPortalFx(null); setTunnel(false); }, 2600);
+        } else {
+          queueTransition(() => { setPortalFx({ kind: "enter", origin: cellOrigin(level.portal) }); setTunnel(true); }, 650);
+          queueTransition(() => { setFinished(true); setTunnel(false); setPortalFx(null); }, 1850);
         }
       }
       else if (r.event === "blackhole") lose("blackhole");
@@ -377,6 +382,10 @@ function Game() {
     const l = LEVELS[i];
     if (!l) return;
     setSelected(null);
+    setFinished(false);
+    warp.current = null;
+    impact.current = null;
+    popped.current.clear();
     setLi(i);
     setGrid(makeGrid(l));
     setDirs(makeDirs());
@@ -449,7 +458,7 @@ function Game() {
             )}
           </aside>
 
-          <div className="order-1 flex flex-col items-center md:order-2">
+          <div className="board-column order-1 flex flex-col items-center md:order-2">
             <div className="mb-3 flex w-full justify-between font-pixel text-sm">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
@@ -505,16 +514,6 @@ function Game() {
               <li>7. Three modules touching the ship at once will overload it.</li>
               {!sandbox && <li>8. Running out of credits (¢) or time also loses the level.</li>}
             </ol>
-            {won && li === LEVELS.length - 1 && (
-              <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
-                <p className="font-pixel text-sm text-success">ESCAPED!</p>
-                <p className="mt-2 text-lg">Build anything you like, or start again from Training.</p>
-                <Button variant="pixel" onClick={() => loadLevel(0)} className="pixel-btn mt-3 w-full">Play again</Button>
-                {li < LEVELS.length - 1 && (
-                  <Button variant="pixel" onClick={() => loadLevel(li + 1)} className="pixel-btn pixel-btn-active mt-3 w-full">Next mission →</Button>
-                )}
-              </div>
-            )}
           </aside>
         </div>
         <footer className="relative mt-10 text-center text-lg text-muted-foreground">Made by Shravan Patil and Anshul Patil</footer>
@@ -523,6 +522,7 @@ function Game() {
       {!started && <StartScreen onStart={() => { setStarted(true); setEmerging(true); }} />}
       {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => { loadLevel(li); setEmerging(true); play("power"); }} />}
       {emerging && <WhiteHole onDone={() => setEmerging(false)} />}
+      {finished && <ExitScreen onReplay={() => { loadLevel(0); setEmerging(true); }} onExit={() => { loadLevel(0); setStarted(false); }} />}
     </main>
   );
 }
