@@ -2,15 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
 import { drawCell } from "@/game/sprites";
-import { LEVELS, MODS, SIZE, computePower, goalProgress, makeGrid, spent, type Cell, type ModType } from "@/game/engine";
+import { LEVELS, MODS, SIZE, computePower, goalProgress, makeGrid, maxSurplus, refund, type Cell, type ModType } from "@/game/engine";
+import { play } from "@/game/sound";
+
+type Loss = "credits" | "time" | "overload";
+const LOSS_TEXT: Record<Loss, string> = {
+  credits: "You ran out of credits.",
+  time: "The countdown hit zero.",
+  overload: "Unused energy overloaded the station.",
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Orbital Assembly — Pixel Space Puzzle" },
-      { name: "description", content: "Build your own space station from modules and power it up in this pixel-art puzzle." },
-      { property: "og:title", content: "Orbital Assembly — Pixel Space Puzzle" },
-      { property: "og:description", content: "Pick modules, wire your station, and power up in a pixel-art space puzzle." },
+      { title: "Project Escape — Outrun the Black Hole" },
+      { name: "description", content: "Build an escape station from modules before the black hole swallows you in this pixel-art space puzzle." },
+      { property: "og:title", content: "Project Escape — Outrun the Black Hole" },
+      { property: "og:description", content: "Pick modules, wire your station, and escape the black hole in a pixel-art puzzle." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -28,11 +36,49 @@ function Game() {
   const [tool, setTool] = useState<ModType | "erase">("reactor");
   const canvas = useRef<HTMLCanvasElement>(null);
   const hover = useRef<[number, number] | null>(null);
+  const [wallet, setWallet] = useState(LEVELS[0]!.budget);
+  const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
+  const [lost, setLost] = useState<Loss | null>(null);
 
   const powered = useMemo(() => computePower(grid), [grid]);
   const { counts, done } = goalProgress(grid, level, powered);
-  const cost = spent(grid);
   const sandbox = level.budget > 900;
+  const surplus = maxSurplus(grid);
+  const overloaded = !sandbox && surplus > level.maxSurplus;
+
+  const lose = (why: Loss) => {
+    if (lost || done) return;
+    setLost(why);
+    play("blackhole");
+  };
+
+  // countdown
+  useEffect(() => {
+    if (sandbox || done || lost) return;
+    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [sandbox, done, lost, li]);
+  useEffect(() => {
+    if (sandbox || done || lost) return;
+    if (timeLeft <= 0) lose("time");
+    else if (timeLeft <= 10) play("warn");
+  }, [timeLeft]);
+  // overload: lose if the station stays overloaded for 3 seconds
+  useEffect(() => {
+    if (!overloaded || done || lost) return;
+    play("warn");
+    const id = setTimeout(() => lose("overload"), 3000);
+    return () => clearTimeout(id);
+  }, [overloaded, done, lost]);
+  // out of credits: nothing affordable left and mission not done
+  useEffect(() => {
+    if (!sandbox && !done && !lost && wallet < 1) lose("credits");
+  }, [wallet, done]);
+  const wasDone = useRef(false);
+  useEffect(() => {
+    if (done && !wasDone.current) play("win");
+    wasDone.current = done;
+  }, [done]);
 
   const state = useRef({ grid, powered });
   state.current = { grid, powered };
@@ -71,12 +117,20 @@ function Game() {
   };
 
   const place = (x: number, y: number) => {
-    if (grid[y]?.[x] === "rock") return;
+    if (lost || done || grid[y]?.[x] === "rock") return;
     const next = grid.map((r) => [...r]);
-    if (tool === "erase" || next[y]![x] === tool) next[y]![x] = null;
-    else {
+    const cur = next[y]![x];
+    if (tool === "erase" || cur === tool) {
+      if (!cur || cur === "rock") return;
+      next[y]![x] = null;
+      if (!sandbox) setWallet((w) => w + refund(cur));
+      play("remove");
+    } else {
+      const price = MODS[tool].cost - (cur && cur !== "rock" ? refund(cur) : 0);
+      if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
-      if (spent(next) > level.budget) return;
+      if (!sandbox) setWallet((w) => w - price);
+      play(computePower(next).size > powered.size ? "power" : "place");
     }
     setGrid(next);
   };
@@ -84,6 +138,9 @@ function Game() {
   const loadLevel = (i: number) => {
     setLi(i);
     setGrid(makeGrid(LEVELS[i]!));
+    setWallet(LEVELS[i]!.budget);
+    setTimeLeft(LEVELS[i]!.time);
+    setLost(null);
   };
 
   return (
@@ -91,8 +148,8 @@ function Game() {
       <Starfield />
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 text-center">
-          <h1 className="font-pixel text-xl text-primary drop-shadow-[0_0_8px_var(--primary)] md:text-3xl">ORBITAL ASSEMBLY</h1>
-          <p className="mt-2 text-xl text-muted-foreground">Pick your modules. Wire the station. Light it up.</p>
+          <h1 className="title-glitch font-pixel text-xl text-primary md:text-3xl">PROJECT ESCAPE</h1>
+          <p className="mt-2 text-xl text-muted-foreground">Build fast. Spend wisely. Don't fall into the black hole.</p>
         </header>
 
         <div className="mb-4 flex flex-wrap justify-center gap-2">
@@ -104,13 +161,13 @@ function Game() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">
-          <aside className="pixel-panel order-2 md:order-1">
+          <aside className="pixel-panel float-in order-2 md:order-1">
             <h2 className="font-pixel mb-3 text-xs text-accent">MODULES</h2>
             <div className="grid gap-2">
               {TYPES.map((t) => (
                 <button key={t} onClick={() => setTool(t)} className={`pixel-btn flex justify-between text-left ${tool === t ? "pixel-btn-active" : ""}`}>
                   <span>{MODS[t].name}</span>
-                  <span className="text-muted-foreground">{MODS[t].desc} · ¢{MODS[t].cost}</span>
+                  <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-muted-foreground"}>{MODS[t].desc} · ¢{MODS[t].cost}</span>
                 </button>
               ))}
               <button onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</button>
@@ -118,6 +175,13 @@ function Game() {
           </aside>
 
           <div className="order-1 flex flex-col items-center md:order-2">
+            {!sandbox && (
+              <div className="mb-3 flex w-full justify-between font-pixel text-xs">
+                <span className={timeLeft <= 10 ? "timer-danger" : "text-accent"}>T-{Math.max(0, timeLeft)}s</span>
+                <span className={overloaded ? "timer-danger" : "text-primary"}>SURGE {surplus}/{level.maxSurplus}</span>
+              </div>
+            )}
+            <div className={`board-wrap ${lost ? "board-sucked" : ""}`}>
             <canvas
               ref={canvas}
               width={SIZE * TILE}
@@ -127,15 +191,16 @@ function Game() {
               onMouseLeave={() => (hover.current = null)}
               onClick={(e) => place(...cellAt(e))}
             />
+            </div>
             <p className="mt-3 text-lg text-muted-foreground">Click to place · click again to remove</p>
           </div>
 
-          <aside className="pixel-panel order-3">
+          <aside className="pixel-panel float-in order-3">
             <h2 className="font-pixel mb-2 text-xs text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
             {!sandbox && (
-              <p className={`mt-3 text-xl ${cost > level.budget ? "text-destructive" : ""}`}>
-                Credits: ¢{cost} / ¢{level.budget}
+              <p className={`mt-3 text-xl ${wallet <= 2 ? "text-destructive" : ""}`}>
+                Credits left: ¢{wallet} / ¢{level.budget}
               </p>
             )}
             <ul className="mt-3 space-y-1 text-xl">
@@ -146,8 +211,15 @@ function Game() {
               ))}
             </ul>
             <p className="mt-4 text-lg text-muted-foreground">
-              Touching modules share one power network. A network runs only if its energy covers every demand.
+              Touching modules share power. A network runs only if its energy covers every demand.
             </p>
+            {!sandbox && (
+              <ul className="mt-2 space-y-1 text-lg text-muted-foreground">
+                <li>▸ Every placement spends credits. Removing refunds only half.</li>
+                <li>▸ Spare energy over {level.maxSurplus} in one network overloads in 3s.</li>
+                <li>▸ Finish before the countdown ends.</li>
+              </ul>
+            )}
             {done && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
                 <p className="font-pixel text-xs text-success">MISSION COMPLETE</p>
@@ -156,10 +228,21 @@ function Game() {
                 )}
               </div>
             )}
-            <button onClick={() => setGrid(makeGrid(level))} className="pixel-btn mt-4 w-full">Reset</button>
+            <button onClick={() => loadLevel(li)} className="pixel-btn mt-4 w-full">Restart mission</button>
           </aside>
         </div>
       </div>
+      {lost && (
+        <div className="hole-overlay" role="alertdialog" aria-label="Lost to the black hole">
+          <div className="hole-disk" />
+          <div className="hole-core absolute" />
+          <div className="hole-text">
+            <p className="font-pixel text-lg text-hole-glow md:text-2xl">SPAGHETTIFIED</p>
+            <p className="mt-3 text-2xl text-foreground">{LOSS_TEXT[lost]} The black hole took your station.</p>
+            <button onClick={() => loadLevel(li)} className="pixel-btn pixel-btn-active mt-5">Try again</button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
