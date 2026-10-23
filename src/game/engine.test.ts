@@ -54,11 +54,11 @@ describe("drift rules", () => {
     const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
     expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
-  it("coins start at 2 and grow by 3 each mission", () => {
-    expect(LEVELS.map((level) => level.budget)).toEqual([2, 5, 8, 11, 14]);
+  it("coins start at 6 and grow by 4 each mission", () => {
+    expect(LEVELS.map((level) => level.budget)).toEqual([6, 10, 14, 18, 22]);
   });
-  it("flight time starts at 20s and grows by 5s each mission", () => {
-    expect(LEVELS.map((level) => level.time)).toEqual([20, 25, 30, 35, 40]);
+  it("the clock starts at 30s and grows by 20s each mission", () => {
+    expect(LEVELS.map((level) => level.time)).toEqual([30, 50, 70, 90, 110]);
   });
   it("every mission is solvable within its budget", () => {
     const solutions: Mod[][] = [
