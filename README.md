@@ -1,36 +1,57 @@
-# Project Escape
+# Project Escape 🚀
 
-**Project Escape** is a space-themed puzzle game built around **Drift**, a simple rule with a strategic twist: once launched, your ship keeps gliding until an object stops it. When the ship comes to rest, a black hole below pulls it one cell closer. Your goal is to place and rotate modules so the ship reaches the escape portal before time, credits, or the ship itself runs out.
+**A space-themed strategy puzzle game where every move matters.**
 
-Created by **Shravan Patil and Anshul Patil** for **Pixathon**, under the theme *“Any puzzle, your rules.”*
+Built by **Shravan Patil and Anshul Patil** for **Pixathon**, inspired by the theme *“Any puzzle, your rules.”*
 
-## Gameplay at a glance
+## Overview
 
-1. **Plan your route.** Place modules on the board to shape how the ship will move.
-2. **Set their direction.** Click a placed module to rotate it, or use the selected module’s arrow controls. Rotation is free.
-3. **Launch the ship.** The ship drifts until a module changes or stops its movement.
-4. **Reach the portal.** Navigate the level while managing your credits and the mission timer.
+Your spaceship follows one key rule: **Drift**. Once launched, it continues moving until something stops or redirects it. When it stops, the black hole below pulls it one cell closer.
+
+Place and rotate modules to guide your ship into the escape portal before your time, credits, or ship runs out.
+
+## Quick start
+
+**Requirements:** Node.js and npm.
+
+```bash
+git clone https://github.com/anshulpatil2808-web/Project_Escape.git
+cd Project_Escape
+npm install
+npm run dev
+```
+
+Open the local URL displayed in your terminal.
+
+## How to play
+
+1. **Plan:** Place modules on the board to create a route.
+2. **Rotate:** Click a placed module or use its arrow controls. Rotation is free.
+3. **Launch:** The ship drifts until a module stops or redirects it.
+4. **Escape:** Reach the portal while managing credits and the timer.
 
 ### Modules
 
-- **Thruster** — pushes an adjacent ship away when both are aligned on the same axis and the flame points toward or away from the ship.
-- **Anchor** — holds the ship only in the adjacent square toward which its glowing face points.
-- **Bumper** — stops the ship on its padded face and reflects it when it hits another side.
+| Module | Behavior |
+| --- | --- |
+| **Thruster** | Pushes an adjacent ship away when aligned on the same axis and its flame points toward or away from the ship. |
+| **Anchor** | Holds the ship only in the adjacent square faced by its glowing side. |
+| **Bumper** | Stops the ship on its padded face and reflects it when hit from another side. |
 
-### Lose conditions
+### Mission failure
 
-A mission ends in failure if any of these happens:
+A mission fails when:
 
-- The ship falls into the event horizon, represented by the glowing bottom row.
-- Three modules touch the ship at the same time.
-- You run out of credits during flight. Removing a module restores its full cost.
+- The ship enters the glowing bottom row (the event horizon).
+- Three modules touch the ship simultaneously.
+- Credits run out during flight. Removing a module refunds its full cost.
 - The mission timer reaches zero.
 
-When a mission fails, the screen collapses into a pixelated black hole. Select **Try again** to trigger a white-hole-style restart effect and return to the mission.
+After failure, the screen collapses into a pixelated black hole. Select **Try again** to restart with a white-hole-style transition.
 
-## Levels
+## Missions
 
-Progress through five missions, each designed to introduce or test different movement challenges:
+There are five missions, in order:
 
 1. **Training**
 2. **Cold Start**
@@ -38,32 +59,47 @@ Progress through five missions, each designed to introduce or test different mov
 4. **High Orbit**
 5. **Gravity Well**
 
-Completing **Gravity Well** unlocks the exit screen, where you can replay or return to the launch screen. Each mission has a tested solution that fits within its credit budget.
+Finishing **Gravity Well** opens the exit screen, where you can replay or return to the launch screen. Each mission has a tested solution within its credit budget.
 
-## Run locally
+## Project guide
 
-You’ll need Node.js and npm installed.
+| Location | Purpose |
+| --- | --- |
+| `src/game/engine.ts` | Core puzzle rules, including `step()`. |
+| `src/game/engine.test.ts` | Automated game-engine and level-solution tests. |
+| `src/` | Game application and interface source. |
+| `public/` | Publicly served assets. |
+| `roadmap.md` | Feature checklist and pending work. |
+| `AGENTS.md` | Project architecture rules and Lovable integration notes. |
+| `package.json` | Dependencies and development commands. |
 
-```sh
-git clone https://github.com/anshulpatil2808-web/Project_Escape.git
-cd Project_Escape
-npm install
-npm run dev
-```
+### Development commands
 
-## Development
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the local development server. |
+| `npm run build` | Create a production build. |
+| `npm run preview` | Preview a production build. |
+| `npm run lint` | Run ESLint. |
+| `npm run test` | Run Vitest tests. |
+| `npm run test:watch` | Run Vitest in watch mode. |
+| `npm run format` | Apply the configured Prettier formatting. |
 
-The game separates its rules from its interface:
+### Architecture notes
 
-- Core puzzle logic lives in `src/game/engine.ts`, in the `step()` function.
-- Engine tests live in `src/game/engine.test.ts` and can be run with `bunx vitest run`.
-- The UI renders the game and advances its ticks; game rules are kept out of the UI.
-- Black-hole and white-hole effects are drawn on small canvases and scaled with `image-rendering: pixelated` for a crisp pixel-art look.
+- The puzzle engine owns the rules; the UI renders state and advances ticks.
+- Black-hole and white-hole effects use small canvases scaled with `image-rendering: pixelated` for crisp pixel art.
+- Module direction and rotation are designed to match the game-engine rules.
+- See [AGENTS.md](AGENTS.md) for important implementation constraints and [roadmap.md](roadmap.md) for the feature checklist.
 
-## Built with
+## Technology
 
-- [Lovable](https://lovable.dev)
+The project uses React, TypeScript, Vite, Vitest, and [Lovable](https://lovable.dev), among other dependencies listed in [package.json](package.json).
+
+## Credits
+
+Created by **Shravan Patil and Anshul Patil** for **Pixathon**.
 
 ---
 
-Have fun plotting your escape among the stars! 🚀
+*Plan your route. Launch your ship. Escape the gravity well.*
