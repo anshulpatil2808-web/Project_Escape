@@ -46,7 +46,7 @@ import { step as stepRule, LEVELS as L2, SIZE as S2 } from "./engine";
 it("thruster with exhaust pointing away still pushes the ship forward", () => {
   const g = Array.from({ length: S2 }, () => Array(S2).fill(null));
   const dirs = Array.from({ length: S2 }, () => Array(S2).fill(0));
-  g[2][0] = "thruster"; dirs[2][0] = 3; // left-facing exhaust, ship at [1,2]
+  g[2]![0] = "thruster"; dirs[2]![0] = 3; // left-facing exhaust, ship at [1,2]
   const r = stepRule(g, dirs, L2[0]!, [1, 2], [0, 0]);
   expect(r.ship).toEqual([2, 2]);
 });
