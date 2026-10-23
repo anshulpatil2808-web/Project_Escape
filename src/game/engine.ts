@@ -107,5 +107,5 @@ export function simulate(g: Cell[][], dirs: number[][], level: Level, max = 60) 
   return "stuck";
 }
 
-/** Removal never changes the wallet; rotating is also free. */
-export const refund = (_m: ModType) => 0;
+/** Removing restores the full purchase cost; rotating is free. */
+export const refund = (m: ModType) => MODS[m].cost;

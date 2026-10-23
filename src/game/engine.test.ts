@@ -9,9 +9,9 @@ const build = (li: number, mods: Mod[]) => {
 };
 
 describe("drift rules", () => {
-  it.each(["thruster", "shield", "comms"] as const)("removing %s leaves coins unchanged, including at zero", (module) => {
-    expect(0 + refund(module)).toBe(0);
-    expect(5 + refund(module)).toBe(5);
+  it.each([["thruster", 2], ["shield", 3], ["comms", 1]] as const)("removing %s restores its full %i-coin cost", (module, price) => {
+    expect(price - price + refund(module)).toBe(price);
+    expect(refund(module)).toBe(price);
   });
   it.each([0, 1, 2, 3])("anchor direction %i holds only its facing square", (dir) => {
     const vectors = [[0, -1], [1, 0], [0, 1], [-1, 0]] as const;
