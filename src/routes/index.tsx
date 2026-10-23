@@ -291,10 +291,12 @@ function Game() {
           c.fillRect(Math.round(ox + 8 + Math.cos(a) * r), Math.round(oy + 8 + Math.sin(a) * r), 1, 1);
         }
       }
-      c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
-      c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
-      c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
-      c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      if (!drawArtwork(c, "ship", ox, oy, TILE)) {
+        c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
+        c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
+        c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
+        c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      }
       if (vel[0] || vel[1]) {
         const f = Math.floor(t / 80) % 2;
         c.fillStyle = f ? "#ffb347" : "#fff4d0";
