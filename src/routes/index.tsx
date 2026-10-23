@@ -3,15 +3,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Starfield } from "@/game/Starfield";
 import { Button } from "@/components/ui/button";
-import { RotateCw, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
 import { drawDirectionalCell, drawCell } from "@/game/sprites";
-import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
+import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, thrustPush, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
 import { WhiteHole } from "@/game/WhiteHole";
 import { ExitScreen } from "@/game/ExitScreen";
 import { UfoCapture } from "@/game/UfoCapture";
+import { AlienDance } from "@/game/AlienDance";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
@@ -65,6 +65,22 @@ function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: nu
   void DIR_NAMES;
 }
 
+/** Bright chevrons marching the way the ship will be sent, drawn from the ship's own square. */
+function drawPushArrow(c: CanvasRenderingContext2D, ox: number, oy: number, dir: number, t: number, alpha = 1) {
+  const [dx, dy] = DIRS[dir]!;
+  const at = (reach: number) => [Math.round(ox + dx * reach), Math.round(oy + dy * reach)] as const;
+  const pulse = Math.floor(t / 150) % 3;
+  for (let i = 0; i < 3; i++) {
+    const reach = 11 + i * 5 + (i === pulse ? 1 : 0);
+    const [tx, ty] = at(reach);
+    const [bx, by] = at(reach - 3);
+    c.fillStyle = `rgba(255,224,102,${(0.95 - i * 0.22) * alpha})`;
+    c.fillRect(tx - 1, ty - 1, 2, 2);
+    if (dx) { c.fillRect(bx - 1, by - 3, 2, 2); c.fillRect(bx - 1, by + 1, 2, 2); }
+    else { c.fillRect(bx - 3, by - 1, 2, 2); c.fillRect(bx + 1, by - 1, 2, 2); }
+  }
+}
+
 /** Predict where the ship goes with the current layout (for the dotted guide). */
 function predict(g: Cell[][], dirs: number[][], li: number, ship: Vec, vel: Vec) {
   const level = LEVELS[li]!;
@@ -97,7 +113,6 @@ function Game() {
   const [lost, setLost] = useState<Loss | null>(null);
   const [emerging, setEmerging] = useState(false);
   const [dirs, setDirs] = useState<number[][]>(makeDirs);
-  const [selected, setSelected] = useState<Vec | null>(null);
   const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [started, setStarted] = useState(false);
   const warp = useRef<{ at: number; kind: "out" | "in" } | null>(null);
@@ -169,14 +184,14 @@ function Game() {
     return () => clearInterval(id);
   }, [flying, lost, won]);
 
-  // countdown while flying
+  // the clock runs the whole time a mission is on screen — planning included
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (locked || sandbox) return;
     const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(id);
-  }, [flying, sandbox]);
+  }, [locked, sandbox]);
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (locked || sandbox) return;
     if (timeLeft <= 0) {
       setFlying(false);
       let target: { module: ModType | null; cell: Vec | null } = { module: null, cell: null };
@@ -293,10 +308,12 @@ function Game() {
           c.fillRect(Math.round(ox + 8 + Math.cos(a) * r), Math.round(oy + 8 + Math.sin(a) * r), 1, 1);
         }
       }
-      c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
-      c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
-      c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
-      c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      if (!drawArtwork(c, "ship", ox, oy, TILE)) {
+        c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
+        c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
+        c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
+        c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      }
       if (vel[0] || vel[1]) {
         const f = Math.floor(t / 80) % 2;
         c.fillStyle = f ? "#ffb347" : "#fff4d0";
@@ -305,6 +322,13 @@ function Game() {
         c.fillRect(ox + 7 - vel[0] * (7 + f), oy + 7 - vel[1] * (7 + f), 2, 2);
       }
       c.restore();
+      // yellow arrows: the way the nearest lined-up thruster sends the ship
+      for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++) {
+          if (grid[y]![x] !== "thruster") continue;
+          const push = thrustPush(dirs[y]![x]!, x, y, ship);
+          if (push !== null) drawPushArrow(c, ship[0] * TILE + 8, ship[1] * TILE + 8, push, t, flying ? 0.45 : 1);
+        }
       const h = hover.current;
       const { tool: tl } = state.current;
       if (h && tl !== "erase" && !grid[h[1]]?.[h[0]] && h[1] < HORIZON_Y && !(h[0] === ship[0] && h[1] === ship[1])) {
@@ -313,6 +337,8 @@ function Game() {
         const d = ship[0] === h[0] ? (ship[1] > h[1] ? 2 : 0) : ship[1] === h[1] ? (ship[0] > h[0] ? 1 : 3) : 1;
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
         else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
+        const gp = tl === "thruster" ? thrustPush(d, h[0], h[1], ship) : null;
+        if (gp !== null) drawPushArrow(c, ship[0] * TILE + 8, ship[1] * TILE + 8, gp, t, 0.6);
         c.globalAlpha = 1;
       }
       if (h) {
@@ -331,7 +357,6 @@ function Game() {
     const current = state.current;
     const module = current.grid[y]?.[x];
     if (current.locked || current.won || !module || module === "rock") return;
-    setSelected(cell);
     popped.current.set(`${x},${y}`, performance.now());
     setDirs((d) => d.map((row, yy) => row.map((v, xx) => xx === x && yy === y ? direction ?? (v + 1) % 4 : v)));
     play("warn");
@@ -370,7 +395,6 @@ function Game() {
       if (!sandbox && price > wallet) return play("warn");
       next[y]![x] = tool;
       popped.current.set(`${x},${y}`, performance.now());
-      setSelected([x, y]);
       {
         // aim at the ship by default if it sits in a straight line
         const d = ship[0] === x ? (ship[1] > y ? 2 : 0) : ship[1] === y ? (ship[0] > x ? 1 : 3) : 1;
@@ -394,7 +418,6 @@ function Game() {
     }
     const l = LEVELS[i];
     if (!l) return;
-    setSelected(null);
     setFinished(false);
     setUfo(null);
     warp.current = null;
@@ -436,7 +459,7 @@ function Game() {
         <p className="goal-line mx-auto mb-4 max-w-2xl text-center text-xl">
           <span className="font-pixel text-sm text-accent">GOAL ▸ </span>Fly the ship into the portal before the black hole takes it.
         </p>
-        <div className="mb-4 flex flex-wrap justify-center gap-2">
+        <div className="level-row mb-4">
           {LEVELS.map((l, i) => (
             <Button variant="pixel" key={l.name} disabled={locked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
               {i + 1}. {l.name}
@@ -444,36 +467,25 @@ function Game() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[minmax(220px,1fr)_auto_minmax(220px,1fr)] lg:gap-8">
-          <aside className="pixel-panel float-in order-2 md:order-1">
-            <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
-            <div className="grid gap-2">
+        <div className="game-grid">
+          <aside className="pixel-panel side-panel float-in order-2 md:order-1">
+            <h2 className="panel-title font-pixel">MODULES</h2>
+            <div className="module-list">
               {TYPES.map((t) => (
-                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
-                  <span className="flex justify-between">
-                    <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-9 w-9 object-contain" />{MODS[t].name}</span>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn module-card flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                  <span className="module-name">
+                    <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-10 w-10 object-contain" />{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
                   </span>
-                  <span className="block text-lg text-muted-foreground">{MODS[t].desc}</span>
+                  <span className="module-desc">{MODS[t].desc}</span>
                 </Button>
               ))}
-              <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
+              <Button variant="pixel" onClick={() => setTool("erase")} className={`pixel-btn module-remove ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove</Button>
             </div>
-            {selected && grid[selected[1]]?.[selected[0]] && grid[selected[1]]?.[selected[0]] !== "rock" && (
-              <div className="mt-4 border-t border-border pt-3">
-                <p className="mb-2 text-xl text-primary">{MODS[grid[selected[1]]?.[selected[0]] as ModType]?.name} · {DIR_NAMES[dirs[selected[1]]?.[selected[0]] ?? 1]}</p>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Module direction">
-                  {[ArrowUp, ArrowRight, ArrowDown, ArrowLeft].map((Icon, dir) => (
-                    <Button key={dir} variant="pixel" size="icon" disabled={locked || won} aria-label={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} title={`Face ${DIR_NAMES[dir]?.toLowerCase()}`} aria-pressed={dirs[selected[1]]?.[selected[0]] === dir} className={dirs[selected[1]]?.[selected[0]] === dir ? "pixel-btn-active" : ""} onClick={() => rotateModule(selected, dir)}><Icon /></Button>
-                  ))}
-                  <Button variant="pixel" size="icon" disabled={locked || won} aria-label="Rotate selected module" title="Rotate clockwise" onClick={() => rotateModule(selected)}><RotateCw /></Button>
-                </div>
-              </div>
-            )}
           </aside>
 
           <div className="board-column order-1 flex flex-col items-center md:order-2">
-            <div className="mb-3 flex w-full justify-between font-pixel text-sm">
+            <div className="hud-row font-pixel mb-3 w-full">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
             </div>
@@ -498,7 +510,7 @@ function Game() {
                     const cur = next[y]![x] as ModType;
                     next[y]![x] = null;
                     if (!sandbox) setWallet((w) => w + refund(cur));
-                    setGrid(next); setSelected(null); play("remove");
+                    setGrid(next); play("remove");
                   }
                   setTool(prev);
                 }}
@@ -512,15 +524,16 @@ function Game() {
               <Button variant="pixel" disabled={locked} onClick={() => loadLevel(li)} className="pixel-btn">Restart</Button>
             </div>
             <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
+            <AlienDance />
           </div>
 
-          <aside className="pixel-panel float-in order-3">
-            <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
-            <p className="text-xl">{level.brief}</p>
-            <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
-            <ol className="space-y-1 text-xl text-muted-foreground">
+          <aside className="pixel-panel side-panel float-in order-3">
+            <h2 className="panel-title font-pixel">MISSION</h2>
+            <p className="mission-brief">{level.brief}</p>
+            <h2 className="panel-title font-pixel mt-4">HOW IT WORKS</h2>
+            <ol className="mission-rules">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
+              <li>2. A thruster beside the ship, lined up with it, sends the ship the way its yellow arrows point. Click any module to turn it.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>
               <li>4. No friction: once moving, the ship glides until it hits something.</li>
               <li>5. When the ship stops, the black hole pulls it down one square at a time.</li>

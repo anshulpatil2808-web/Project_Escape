@@ -1,6 +1,11 @@
-// Retro sounds made in code. When sound files are uploaded, set the URLs here
-// and they will play instead of the generated ones.
-export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
+// Uploaded sounds play when available; the generated retro tones are the fallback.
+import checkpoint from "@/assets/checkpoint.wav.asset.json";
+import voidSound from "@/assets/void.wav.asset.json";
+
+export const SOUND_FILES: Partial<Record<SoundName, string>> = {
+  win: checkpoint.url,          // mission cleared
+  blackhole: voidSound.url,     // swallowed by the black hole
+};
 
 export type SoundName = "place" | "remove" | "power" | "win" | "warn" | "blackhole";
 

@@ -139,7 +139,7 @@
   --primary-foreground: oklch(0.15 0.03 270);
   --accent: oklch(0.82 0.15 70);
   --muted-foreground: oklch(0.84 0.04 250);
-  --card: oklch(0.16 0.04 270 / 0.85);
+  --card: oklch(0.16 0.04 270);
   --border: oklch(0.45 0.08 240);
   --success: oklch(0.85 0.2 145);
 }
@@ -269,3 +269,28 @@
   40% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .page-portal-enter, .page-portal-exit { animation-duration: 1ms; } }
 @media (prefers-reduced-motion: reduce) { .page-emerge { animation: none; } }
+
+/* evenly sized, readable side panels */
+.game-grid { display: grid; gap: 1rem; align-items: stretch; }
+@media (min-width: 768px) { .game-grid { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1.5rem; } }
+.side-panel { display: flex; flex-direction: column; min-width: 0; padding: 1.25rem; }
+.panel-title { font-size: .85rem; letter-spacing: .1em; color: var(--accent); margin-bottom: .9rem; }
+.module-list { display: flex; flex: 1; flex-direction: column; gap: .65rem; }
+.module-card { display: flex; flex: 1 1 auto; flex-direction: column; justify-content: center; gap: .4rem; }
+.module-name { display: flex; align-items: center; justify-content: space-between; gap: .6rem; font-size: 1.3rem; }
+.module-desc { font-size: 1.05rem; line-height: 1.4; color: var(--muted-foreground); }
+.module-remove { min-height: 44px; font-size: 1.2rem; }
+.mission-brief { font-size: 1.2rem; line-height: 1.45; }
+.mission-rules { display: flex; flex: 1; flex-direction: column; justify-content: space-between; gap: .55rem; font-size: 1.05rem; line-height: 1.4; color: var(--muted-foreground); }
+.hud-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .9rem; background: oklch(0.05 0.02 300 / .8); border: 2px solid var(--border); padding: .35rem .65rem; }
+.level-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
+@media (min-width: 768px) { .level-row { display: flex; flex-wrap: wrap; justify-content: center; } }
+
+/* dancing pixel aliens fill the space under the board */
+.alien-stage { display: grid; grid-template-columns: 1fr auto 1fr; align-items: flex-end; gap: .75rem; width: 100%; margin-top: .9rem; padding: .6rem .8rem; border: 3px solid var(--border); background: var(--card); }
+.aliens { display: flex; align-items: flex-end; justify-content: center; gap: clamp(.5rem, 2vw, 1.4rem); }
+.alien { animation: alienHop .9s steps(4) infinite; }
+@keyframes alienHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } 60% { transform: translateY(-2px); } }
+.alien-still { animation-play-state: paused; }
+.alien-toggle { justify-self: end; min-width: 44px; }
+@media (prefers-reduced-motion: reduce) { .alien { animation: none; } }
