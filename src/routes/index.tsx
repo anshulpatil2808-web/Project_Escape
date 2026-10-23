@@ -94,7 +94,7 @@ function Game() {
   const hover = useRef<[number, number] | null>(null);
   const trail = useRef<Vec[]>([]);
 
-  const live = { grid, dirs, ship, vel, level, flying, li };
+  const live = { grid, dirs, ship, vel, level, flying, li, won };
   const state = useRef(live);
   state.current = live;
 
@@ -143,7 +143,7 @@ function Game() {
     const c = canvas.current!.getContext("2d")!;
     let raf = 0;
     const loop = (t: number) => {
-      const { grid, dirs, ship, vel, level, flying, li } = state.current;
+      const { grid, dirs, ship, vel, level, flying, li, won } = state.current;
       c.clearRect(0, 0, SIZE * TILE, SIZE * TILE);
       for (let y = 0; y < SIZE; y++)
         for (let x = 0; x < SIZE; x++) {
@@ -176,7 +176,7 @@ function Game() {
           else drawCell(c, grid[y]![x]!, x * TILE, y * TILE, t + x * 37 + y * 53, true);
         }
       // predicted path
-      if (!flying) {
+      if (!flying && !won) {
         predict(grid, dirs, li, ship, vel).forEach(([x, y], i) => {
           if (Math.floor(t / 150) % 16 === i) return;
           c.fillStyle = y >= HORIZON_Y ? "#ff5ad5" : "#ffe066";
