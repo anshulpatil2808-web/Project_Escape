@@ -13,7 +13,7 @@ export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Thruster", cost: 2, desc: "Fires one way. A ship in its blast gets launched that way. Click it to rotate." },
+  thruster: { name: "Thruster", cost: 2, desc: "Lined up with the ship (blast in or exhaust out), it pushes the ship forward. Click to rotate." },
   shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it." },
   comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it." },
 };
