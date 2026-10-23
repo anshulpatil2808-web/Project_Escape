@@ -85,3 +85,13 @@ it("thruster with exhaust pointing away still pushes the ship forward", () => {
   const r = stepRule(g, dirs, L2[0]!, [1, 2], [0, 0]);
   expect(r.ship).toEqual([2, 2]);
 });
+
+describe("thrust push direction", () => {
+  it("names the way the ship travels for both firing modes", () => {
+    expect(thrustPush(1, 0, 2, [1, 2])).toBe(1);    // blast toward the ship: ship goes right
+    expect(thrustPush(3, 0, 2, [1, 2])).toBe(1);    // blast away, engine mode: ship still goes right
+    expect(thrustPush(0, 0, 2, [1, 2])).toBeNull(); // sideways blast: nothing happens
+    expect(thrustPush(1, 0, 2, [3, 2])).toBeNull(); // not beside the ship
+    expect(thrustPush(2, 1, 4, [1, 3])).toBe(0);    // below the ship, engine mode: ship goes up
+  });
+});
