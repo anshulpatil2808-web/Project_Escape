@@ -51,7 +51,7 @@ export function computePower(g: Cell[][]) {
         comp.push(`${cx},${cy}`);
         gen += MODS[m].gen;
         use += MODS[m].use;
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
           const nx = cx + dx, ny = cy + dy;
           const n = g[ny]?.[nx];
           if (n && n !== "rock" && !seen.has(`${nx},${ny}`)) {
