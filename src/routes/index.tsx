@@ -380,7 +380,7 @@ function Game() {
               <li>3. When it stops, the black hole pulls it down one cell at a time.</li>
               <li>4. Fall into the purple bottom row and it's gone.</li>
               <li>5. Three modules touching the ship at once overload it.</li>
-              {!sandbox && <li>6. Spend every credit, or run out the clock, and the black hole wins.</li>}
+              {!sandbox && <li>6. Hit ¢0 mid-flight, or let the clock run out, and the black hole wins.</li>}
             </ol>
             {won && li === LEVELS.length - 1 && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
