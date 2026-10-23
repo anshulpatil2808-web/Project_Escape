@@ -18,8 +18,11 @@ export function WhiteHole({ onDone }: { onDone: () => void }) {
     let raf = 0;
     const loop = (now: number) => {
       const t = (now - start) / 1000;
-      c.fillStyle = `rgba(4,2,10,${t < 0.15 ? 0 : 0.3})`;
+      // fade old pixels to transparent so the page shows through as it emerges
+      c.globalCompositeOperation = "destination-out";
+      c.fillStyle = "rgba(0,0,0,0.3)";
       c.fillRect(0, 0, W, H);
+      c.globalCompositeOperation = "source-over";
       // core flash then shockwave rings
       const core = Math.max(0, 14 - t * 14);
       for (let y = -core; y <= core; y++) for (let x = -core; x <= core; x++)
