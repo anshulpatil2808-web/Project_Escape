@@ -402,12 +402,12 @@ function Game() {
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
             <ol className="space-y-1 text-lg text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
-              <li>· A thruster only fires the ship if its nozzle points at it. Click to rotate.</li>
-              <li>2. No friction: once moving, the ship glides until it hits something.</li>
-              <li>3. When it stops, the black hole pulls it down one cell at a time.</li>
-              <li>4. Fall into the purple bottom row and it's gone.</li>
-              <li>5. Three modules touching the ship at once overload it.</li>
-              {!sandbox && <li>6. Hit ¢0 mid-flight, or let the clock run out, and the black hole wins.</li>}
+              <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Click a thruster to turn it.</li>
+              <li>3. No friction: once moving, the ship glides until it hits something.</li>
+              <li>4. When the ship stops, the black hole pulls it down one square at a time.</li>
+              <li>5. If it falls into the purple bottom row, it's gone.</li>
+              <li>6. Three modules touching the ship at once will overload it.</li>
+              {!sandbox && <li>7. Running out of credits (¢) or time also loses the level.</li>}
             </ol>
             {won && li === LEVELS.length - 1 && (
               <div className="mt-4 animate-pulse border-2 border-success p-3 text-center">
