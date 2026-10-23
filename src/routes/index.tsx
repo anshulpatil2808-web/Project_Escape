@@ -116,6 +116,8 @@ function Game() {
   };
   const hover = useRef<[number, number] | null>(null);
   const trail = useRef<Vec[]>([]);
+  /** the ship's drawn position eases between cells over one tick */
+  const shipGlide = useRef<{ from: Vec; to: Vec; at: number } | null>(null);
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
@@ -411,6 +413,7 @@ function Game() {
     setGrid(makeGrid(l));
     setDirs(makeDirs());
     setShip(l.ship);
+    shipGlide.current = null;
     setVel([0, 0]);
     setFlying(false);
     setWon(false);
