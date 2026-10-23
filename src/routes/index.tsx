@@ -13,6 +13,7 @@ import { WhiteHole } from "@/game/WhiteHole";
 import { ExitScreen } from "@/game/ExitScreen";
 import { UfoCapture } from "@/game/UfoCapture";
 import { ARTWORK, drawArtwork } from "@/game/artwork";
+import { AlienDance } from "@/game/AlienDance";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
 const LOSS_TEXT: Record<Loss, string> = {
@@ -444,12 +445,12 @@ function Game() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[minmax(220px,1fr)_auto_minmax(220px,1fr)] lg:gap-8">
-          <aside className="pixel-panel float-in order-2 md:order-1">
+        <div className="game-layout">
+          <aside className="pixel-panel module-panel float-in">
             <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
-            <div className="grid gap-2">
+            <div className="module-list">
               {TYPES.map((t) => (
-                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn module-choice flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
                   <span className="flex justify-between">
                     <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-9 w-9 object-contain" />{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
@@ -472,7 +473,7 @@ function Game() {
             )}
           </aside>
 
-          <div className="board-column order-1 flex flex-col items-center md:order-2">
+          <div className="board-column flex flex-col items-center">
             <div className="mb-3 flex w-full justify-between font-pixel text-sm">
               <span className={!sandbox && timeLeft <= 5 ? "timer-danger" : "text-accent"}>{sandbox ? "NO CLOCK" : `T-${Math.max(0, timeLeft)}s`}</span>
               <span className="text-primary">{sandbox ? "¢∞" : `¢${wallet}`}</span>
@@ -512,13 +513,14 @@ function Game() {
               <Button variant="pixel" disabled={locked} onClick={() => loadLevel(li)} className="pixel-btn">Restart</Button>
             </div>
             <p className="mt-2 text-center text-lg text-muted-foreground">Yellow dots show the ship’s path · Click any module to turn it · Right-click a module to remove it</p>
+            <AlienDance />
           </div>
 
-          <aside className="pixel-panel float-in order-3">
+          <aside className="pixel-panel mission-panel float-in">
             <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
-            <ol className="space-y-1 text-xl text-muted-foreground">
+            <ol className="mission-rules text-xl text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
               <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Turn any module to change its active face.</li>
               <li>3. Anchors hold only their facing square. Bumper fronts stop; their backs and sides bounce.</li>

@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 # Agent rules
+- Decorative alien animation stays separate from the puzzle simulation and has pause/reduced-motion support. Why: entertainment must not affect play or accessibility.
 - Puzzle rules live as pure functions in src/game/engine.ts (step()) with tests in engine.test.ts; UI only renders and ticks. Why: keeps rules testable and every level provably solvable.
 - Black/white hole effects draw on tiny canvases scaled up with image-rendering: pixelated. Why: real pixelation instead of CSS blur.
 - Directional module faces share engine predicates with canvas feedback; all placed modules use one rotation control. Why: keeps visual direction consistent with the actual rules.

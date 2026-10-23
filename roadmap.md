@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Balance game panels and add dancing pixel aliens; verify desktop and narrow screens
 - [x] Coins: 2 on Training, +3 per mission (2/5/8/11/14); timers 20/25/30/35/40s
 - [x] Redraw crushed-looking start-screen rocket (proper nose, hull, fins, engine bell)
 - [x] UFO grabs a module on timeout and drops it into the void

@@ -191,6 +191,47 @@
 .board-column { min-width: 0; width: 100%; }
 .board-column .board-wrap { width: min(100%, 74vh, 788px); }
 .board-column canvas { width: 100%; }
+.game-layout { display: grid; grid-template-areas: "board" "modules" "mission"; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.board-column { grid-area: board; }
+.module-panel { grid-area: modules; min-width: 0; }
+.mission-panel { grid-area: mission; min-width: 0; }
+.game-layout .pixel-panel { padding: 20px; }
+.module-list { display: grid; gap: 12px; }
+.module-choice { width: 100%; min-width: 0; padding: 12px 14px; gap: 8px; }
+.module-choice > span:first-child { align-items: center; gap: 12px; }
+.module-choice > span:last-child { line-height: 1.4; }
+.mission-rules { display: grid; gap: 14px; line-height: 1.4; }
+@media (min-width: 700px) and (max-width: 1039px) {
+  .module-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .module-list > :last-child { grid-column: 1 / -1; }
+  .mission-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+}
+@media (min-width: 1040px) {
+  .game-layout { grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "board modules" "mission mission"; gap: 28px; }
+  .mission-rules { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 32px; }
+}
+@media (min-width: 1440px) {
+  .game-layout { grid-template-columns: 300px minmax(0, 1fr) 320px; grid-template-areas: "modules board mission"; }
+  .mission-rules { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+}
+.alien-stage { position: relative; width: min(100%, 640px); height: 172px; flex-shrink: 0; margin-top: 20px; overflow: hidden; }
+.alien-motion { position: absolute; right: 0; top: 8px; z-index: 1; }
+.alien-crew { position: absolute; inset: 32px 24px 22px; display: flex; align-items: end; justify-content: space-evenly; gap: 12px; }
+.dancing-alien { width: 64px; height: 80px; overflow: visible; color: var(--success); animation: alien-hop 900ms steps(2, end) infinite; }
+.alien-1 { color: var(--primary); animation-delay: -180ms; }
+.alien-2 { color: var(--accent); animation-delay: -360ms; }
+.alien-3 { color: var(--hole-glow); animation-delay: -540ms; }
+.alien-4 { color: var(--foreground); animation-delay: -720ms; }
+.alien-arm-left { transform-origin: 10px 26px; animation: alien-wave 900ms steps(2, end) infinite; }
+.alien-arm-right { transform-origin: 22px 26px; animation: alien-wave 900ms -450ms steps(2, end) infinite reverse; }
+.alien-eyes { animation: alien-blink 4500ms steps(1) infinite; }
+.alien-deck { position: absolute; bottom: 16px; left: 8%; right: 8%; height: 8px; border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); background: repeating-linear-gradient(90deg, var(--primary) 0 4px, transparent 4px 28px); }
+.alien-stage-paused *, .alien-stage-paused { animation-play-state: paused; }
+@keyframes alien-hop { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+@keyframes alien-wave { 50% { transform: rotate(45deg); } }
+@keyframes alien-blink { 96% { transform: scaleY(.15); transform-origin: 0 17px; } }
+@media (max-width: 540px) { .dancing-alien { width: 44px; height: 55px; } .alien-stage { height: 136px; } .alien-crew { gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .alien-stage * { animation: none; } }
 .exit-portal { width: 80px; height: 80px; border: 6px dashed var(--primary); border-radius: 50%; box-shadow: 0 0 24px var(--primary); animation: spin 9s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .exit-portal { animation: none; } }
 
