@@ -29,7 +29,7 @@ export const LEVELS: Level[] = [
 
 export function makeGrid(level: Level): Cell[][] {
   const g: Cell[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
-  level.rocks.forEach(([x, y]) => (g[y][x] = "rock"));
+  level.rocks.forEach(([x, y]) => (g[y]![x] = "rock"));
   return g;
 }
 
@@ -39,15 +39,15 @@ export function computePower(g: Cell[][]) {
   const powered = new Set<string>();
   for (let y = 0; y < SIZE; y++)
     for (let x = 0; x < SIZE; x++) {
-      const c = g[y][x];
+      const c = g[y]![x];
       if (!c || c === "rock" || seen.has(`${x},${y}`)) continue;
       const comp: string[] = [];
       const stack = [[x, y]];
       let gen = 0, use = 0;
       seen.add(`${x},${y}`);
       while (stack.length) {
-        const [cx, cy] = stack.pop()!;
-        const m = g[cy][cx] as ModType;
+        const [cx, cy] = stack.pop() as [number, number];
+        const m = g[cy]![cx] as ModType;
         comp.push(`${cx},${cy}`);
         gen += MODS[m].gen;
         use += MODS[m].use;
