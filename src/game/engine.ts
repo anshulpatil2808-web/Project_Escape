@@ -109,12 +109,13 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
 
 /** Run a full flight with no mid-flight changes. */
 export function simulate(g: Cell[][], dirs: number[][], level: Level, max = 60) {
-  let s: Vec = level.ship, v: Vec = [0, 0];
+  let s: Vec = level.ship, v: Vec = [0, 0], d = dirs;
   for (let i = 0; i < max; i++) {
-    const r = step(g, dirs, level, s, v);
+    const r = step(g, d, level, s, v);
     if (r.event === "portal" || r.event === "blackhole" || r.event === "overload") return r.event;
     if (r.event === "held") return "stuck";
     s = r.ship; v = r.vel;
+    d = spinAttached(g, d);
   }
   return "stuck";
 }
