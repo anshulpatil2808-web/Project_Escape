@@ -8,3 +8,4 @@
 - [ ] Hard-from-the-start levels, increasing difficulty
 - [ ] Win animation: ship flies through portal, next level loads automatically
 - [ ] Footer: "Made by Shravan Patil and Anshul Patil"
+- [ ] Start screen: rocket launch, press Space (or tap) to start; works on phones/tablets/desktop
