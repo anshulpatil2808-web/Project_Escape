@@ -13,7 +13,7 @@ export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Thruster", cost: 2, desc: "Fires one way. A ship in its blast gets launched that way. Click it to rotate." },
+  thruster: { name: "Thruster", cost: 2, desc: "Lined up with the ship (blast in or exhaust out), it pushes the ship forward. Click to rotate." },
   shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it." },
   comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it." },
 };
@@ -68,13 +68,15 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
   if (adj.some((n) => n.c === "shield")) return { ship, vel: [0, 0], event: "held" };
 
   let v: Vec = vel;
-  // 3. Thrusters whose blast points at the ship launch it in that direction
+  // 3. Thrusters lined up with the ship (blast toward it, or exhaust pointing away like an engine)
+  //    push it forward, away from the thruster. Sideways thrusters do nothing.
   const firing = adj.filter((n) => {
     if (n.c !== "thruster") return false;
     const [dx, dy] = DIRS[dirs[n.y]![n.x]!]!;
-    return n.x + dx === sx && n.y + dy === sy;
+    const ax = sx - n.x, ay = sy - n.y;
+    return (dx === ax && dy === ay) || (dx === -ax && dy === -ay);
   });
-  if (firing.length) v = firing.reduce<Vec>((a, n) => { const d = DIRS[dirs[n.y]![n.x]!]!; return [a[0] + d[0], a[1] + d[1]]; }, [0, 0]);
+  if (firing.length) v = firing.reduce<Vec>((a, n) => [a[0] + (sx - n.x), a[1] + (sy - n.y)], [0, 0]);
   // 4. Not moving at all? The black hole pulls it down
   if (v[0] === 0 && v[1] === 0) v = [0, 1];
   v = Math.abs(v[0]) > Math.abs(v[1]) ? [Math.sign(v[0]), 0] : [0, Math.sign(v[1])];
