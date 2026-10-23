@@ -141,6 +141,7 @@ function Game() {
       trail.current = [...trail.current.slice(-8), ship];
       setShip(r.ship);
       setVel(r.vel);
+      setDirs((d) => spinAttached(grid, d));
       if (r.event === "portal") {
         setWon(true); setFlying(false); play("win");
         setUnlocked((u) => Math.max(u, li + 1));
