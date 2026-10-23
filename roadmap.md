@@ -24,5 +24,6 @@
 - [x] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations
 - [x] Fill more of the screen; add background comets
 - [ ] Solve every mission with a brute-force solver; set budget and time from the cheapest solution
+- [ ] Lock later missions until the previous one is beaten
 - [ ] Make the animations smoother
 - [ ] Use the new uploads: UFO art in the timeout kill screen, rocket on the welcome screen, capsule as the crew module thrown into the void
