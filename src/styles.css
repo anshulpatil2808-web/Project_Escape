@@ -240,6 +240,7 @@
 .start-ui-out { animation: startOut 600ms steps(6) forwards; }
 @keyframes startOut { to { opacity: 0; transform: translateY(-40px); } }
 .blink { animation: danger 1s steps(2) infinite; }
+.start-card { max-width: 30rem; padding: 1.4rem 1.6rem; background: oklch(0.13 0.035 270 / 0.9); border: 2px solid var(--border); box-shadow: 6px 6px 0 oklch(0 0 0 / 0.45); }
 .goal-line { border: 2px dashed var(--border); padding: .4rem .8rem; background: var(--card); }
 .tactical { padding: 14px; background:
   linear-gradient(var(--primary), var(--primary)) top left / 14px 2px no-repeat,

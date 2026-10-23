@@ -81,20 +81,20 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const groundY = 100 + Math.min(40, lt * lt * 18); // ground drops away as we climb
       px(0, groundY + shake, W, H, "#1a2130");
       px(0, groundY + shake, W, 1, "#5b6b82");
-      px(66 + shake, groundY - 4 + shake, 28, 4, "#2c3647");
-      px(70 + shake, groundY - 30 + shake, 2, 26, "#5b6b82"); // tower
-      for (let y = 0; y < 26; y += 4) px(70 + shake, groundY - 30 + y + shake, 6, 1, "#5b6b82");
+      px(30 + shake, groundY - 4 + shake, 28, 4, "#2c3647");
+      px(34 + shake, groundY - 30 + shake, 2, 26, "#5b6b82"); // tower
+      for (let y = 0; y < 26; y += 4) px(34 + shake, groundY - 30 + y + shake, 6, 1, "#5b6b82");
 
       // rocket
       // asteroid that crosses the launch path and smacks the rocket
       const HIT = 0.7;
       if (launchAt.current && lt > 0.2) {
         const t = lt - 0.2;
-        const ax = hitAt === null ? 150 - (t / (HIT - 0.2)) * 69 : 81 + (lt - hitAt) * 90;
+        const ax = hitAt === null ? -20 + (t / (HIT - 0.2)) * 64 : 44 - (lt - hitAt) * 90;
         const ay = hitAt === null ? 30 + t * 12 : 36 + (lt - hitAt) * 40;
         if (hitAt === null && lt >= HIT) {
           hitAt = lt; play("remove");
-          for (let i = 0; i < 18; i++) debris.push({ x: 82, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
+          for (let i = 0; i < 18; i++) debris.push({ x: 45, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
         }
         if (!drawArtwork(c, "rock", ax - 5, ay - 5, 12)) { px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); }
       }
@@ -109,7 +109,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
       if (since >= 0 && since < 0.08) { c.fillStyle = "rgba(255,240,200,0.5)"; c.fillRect(0, 0, W, H); }
       const climb = launchAt.current ? lt * lt * 70 - bump : Math.sin(now / 600) * 0.5;
-      const rx = 78 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 40 - climb + shake;
+      const rx = 41 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 40 - climb + shake;
       // rocket: the uploaded pixel-art fighter (simple silhouette until it loads)
       const RS = 40;
       if (!drawArtwork(c, "rocket", rx + 3 - RS / 2, ry + 11 - RS / 2, RS)) {
@@ -148,17 +148,19 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       <canvas ref={ref} width={W} height={H} className="hole-canvas" aria-hidden />
       <div className={`start-ui ${launching ? "start-ui-out" : ""}`}>
         <h1 className="title-glitch font-pixel text-3xl text-primary md:text-6xl">PROJECT ESCAPE</h1>
-        <p className="mt-4 max-w-md text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
-        <ul className="mx-auto mt-5 max-w-md space-y-1 text-left text-lg text-muted-foreground">
-          <li>▸ Place thrusters, anchors and bumpers on the grid</li>
-          <li>▸ Turn any module to choose its active face</li>
-          <li>▸ Hit Launch and watch the ship drift</li>
-          <li>▸ Reach the portal before the black hole eats you</li>
-        </ul>
-        <p className="blink font-pixel mt-8 text-sm text-accent md:text-base">
-          <span className="hidden md:inline">PRESS SPACE TO LAUNCH</span>
-          <span className="md:hidden">TAP TO LAUNCH</span>
-        </p>
+        <div className="start-card">
+          <p className="text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
+          <ul className="mx-auto mt-5 space-y-1 text-left text-lg text-muted-foreground">
+            <li>▸ Place thrusters, anchors and bumpers on the grid</li>
+            <li>▸ Turn any module to choose its active face</li>
+            <li>▸ Hit Launch and watch the ship drift</li>
+            <li>▸ Reach the portal before the black hole eats you</li>
+          </ul>
+          <p className="blink font-pixel mt-8 text-sm text-accent md:text-base">
+            <span className="hidden md:inline">PRESS SPACE TO LAUNCH</span>
+            <span className="md:hidden">TAP TO LAUNCH</span>
+          </p>
+        </div>
       </div>
       <p className="credit absolute bottom-4 left-0 right-0 z-[52] text-center text-lg text-muted-foreground">Made by Shravan Patil and Anshul Patil</p>
     </div>
