@@ -408,7 +408,7 @@ function Game() {
                     <span>{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
                   </span>
-                  <span className="block text-base text-muted-foreground">{MODS[t].desc}</span>
+                  <span className="block text-lg text-muted-foreground">{MODS[t].desc}</span>
                 </button>
               ))}
               <button onClick={() => setTool("erase")} className={`pixel-btn ${tool === "erase" ? "pixel-btn-active" : ""}`}>Remove (half refund)</button>
@@ -460,7 +460,7 @@ function Game() {
             <h2 className="font-pixel mb-2 text-sm text-accent">MISSION</h2>
             <p className="text-xl">{level.brief}</p>
             <h2 className="font-pixel mb-2 mt-4 text-sm text-accent">HOW IT WORKS</h2>
-            <ol className="space-y-1 text-lg text-muted-foreground">
+            <ol className="space-y-1 text-xl text-muted-foreground">
               <li>1. Get the ship into the spinning portal.</li>
               <li>2. A thruster next to the ship, lined up with it, pushes the ship away from it. Click a thruster to turn it.</li>
               <li>3. No friction: once moving, the ship glides until it hits something.</li>
