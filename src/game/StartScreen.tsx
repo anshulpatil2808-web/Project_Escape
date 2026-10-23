@@ -108,26 +108,26 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const bump = since >= 0 ? 14 * Math.exp(-since * 4) * Math.min(1, since * 12) : 0;
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
       if (since >= 0 && since < 0.08) { c.fillStyle = "rgba(255,240,200,0.5)"; c.fillRect(0, 0, W, H); }
-      const climb = launchAt.current ? lt * lt * 70 - bump : Math.sin(now / 600) * 0.5;
-      const rx = 41 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 40 - climb + shake;
+      const climb = launchAt.current ? Math.min(52, lt * lt * 45) - bump : Math.sin(now / 600) * 0.5;
+      const rx = 11 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 30 - climb + shake;
       // rocket: the uploaded pixel-art fighter (simple silhouette until it loads)
-      const RS = 40;
+      const RS = 28;
       if (!drawArtwork(c, "rocket", rx + 3 - RS / 2, ry + 11 - RS / 2, RS)) {
-        px(rx + 2, ry - 8, 2, 2, "#ff5a5a");
-        px(rx, ry - 6, 6, 30, "#e8f0ff");
-        px(rx - 2, ry + 18, 2, 10, "#ff5a5a");
-        px(rx + 6, ry + 18, 2, 10, "#ff5a5a");
+        px(rx + 2, ry - 2, 2, 2, "#ff5a5a");
+        px(rx + 1, ry, 4, 20, "#e8f0ff");
+        px(rx - 1, ry + 12, 2, 8, "#ff5a5a");
+        px(rx + 5, ry + 12, 2, 8, "#ff5a5a");
       }
       // flame only once the engines fire
       const flame = launchAt.current ? 8 + Math.random() * 10 : 0;
       if (flame > 0) {
-        px(rx - 1, ry + 31, 8, flame, "#ffb347");
-        px(rx + 1, ry + 31, 4, flame * 0.6, "#fff4d0");
+        px(rx - 1, ry + 25, 8, flame, "#ffb347");
+        px(rx + 1, ry + 25, 4, flame * 0.6, "#fff4d0");
       }
       // smoke clouds
       const rate = launchAt.current ? 6 : 0.3;
       for (let i = 0; i < rate; i++)
-        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 30 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
+        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 24 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
       for (let i = smoke.length - 1; i >= 0; i--) {
         const s = smoke[i]!;
         s.x += s.vx; s.y += s.vy; s.vx *= 0.97; s.l--;
