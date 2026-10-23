@@ -64,18 +64,19 @@ function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: nu
   void DIR_NAMES;
 }
 
-/** Bright chevrons marching the way the ship will be sent. */
-function drawPushArrow(c: CanvasRenderingContext2D, x: number, y: number, dir: number, t: number, alpha = 1) {
+/** Bright chevrons marching the way the ship will be sent, drawn from the ship's own square. */
+function drawPushArrow(c: CanvasRenderingContext2D, ox: number, oy: number, dir: number, t: number, alpha = 1) {
   const [dx, dy] = DIRS[dir]!;
+  const at = (reach: number) => [Math.round(ox + dx * reach), Math.round(oy + dy * reach)] as const;
   const pulse = Math.floor(t / 150) % 3;
   for (let i = 0; i < 3; i++) {
-    const reach = 7 + i * 4 + (i === pulse ? 1 : 0);
-    const tx = Math.round(x + 8 + dx * reach), ty = Math.round(y + 8 + dy * reach);
-    const bx = tx - dx, by = ty - dy;
-    c.fillStyle = `rgba(255,224,102,${(0.95 - i * 0.25) * alpha})`;
-    c.fillRect(tx, ty, 1, 1);
-    if (dx) { c.fillRect(bx, by - 1, 1, 1); c.fillRect(bx, by + 1, 1, 1); }
-    else { c.fillRect(bx - 1, by, 1, 1); c.fillRect(bx + 1, by, 1, 1); }
+    const reach = 11 + i * 5 + (i === pulse ? 1 : 0);
+    const [tx, ty] = at(reach);
+    const [bx, by] = at(reach - 3);
+    c.fillStyle = `rgba(255,224,102,${(0.95 - i * 0.22) * alpha})`;
+    c.fillRect(tx - 1, ty - 1, 2, 2);
+    if (dx) { c.fillRect(bx - 1, by - 3, 2, 2); c.fillRect(bx - 1, by + 1, 2, 2); }
+    else { c.fillRect(bx - 3, by - 1, 2, 2); c.fillRect(bx + 1, by - 1, 2, 2); }
   }
 }
 
@@ -252,13 +253,6 @@ function Game() {
           else drawCell(c, cell, x * TILE, y * TILE, t + x * 37 + y * 53, true);
           c.restore();
         }
-      // yellow arrows showing the way each thruster sends the ship
-      for (let y = 0; y < SIZE; y++)
-        for (let x = 0; x < SIZE; x++) {
-          if (grid[y]![x] !== "thruster") continue;
-          const push = thrustPush(dirs[y]![x]!, x, y, ship);
-          if (push !== null) drawPushArrow(c, x * TILE, y * TILE, push, t, flying ? 0.4 : 1);
-        }
       // anchor tether: pulsing beam to the ship it is holding
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
         const ax = ship[0] + dx, ay = ship[1] + dy;
@@ -327,6 +321,13 @@ function Game() {
         c.fillRect(ox + 7 - vel[0] * (7 + f), oy + 7 - vel[1] * (7 + f), 2, 2);
       }
       c.restore();
+      // yellow arrows: the way the nearest lined-up thruster sends the ship
+      for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++) {
+          if (grid[y]![x] !== "thruster") continue;
+          const push = thrustPush(dirs[y]![x]!, x, y, ship);
+          if (push !== null) drawPushArrow(c, ship[0] * TILE + 8, ship[1] * TILE + 8, push, t, flying ? 0.45 : 1);
+        }
       const h = hover.current;
       const { tool: tl } = state.current;
       if (h && tl !== "erase" && !grid[h[1]]?.[h[0]] && h[1] < HORIZON_Y && !(h[0] === ship[0] && h[1] === ship[1])) {
@@ -336,7 +337,7 @@ function Game() {
         if (tl === "thruster") drawThruster(c, h[0] * TILE, h[1] * TILE, d, t);
         else drawDirectionalCell(c, tl, h[0] * TILE, h[1] * TILE, t, d);
         const gp = tl === "thruster" ? thrustPush(d, h[0], h[1], ship) : null;
-        if (gp !== null) drawPushArrow(c, h[0] * TILE, h[1] * TILE, gp, t, 0.7);
+        if (gp !== null) drawPushArrow(c, ship[0] * TILE + 8, ship[1] * TILE + 8, gp, t, 0.6);
         c.globalAlpha = 1;
       }
       if (h) {
