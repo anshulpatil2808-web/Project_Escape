@@ -31,7 +31,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
     const c = ref.current!.getContext("2d")!;
     const stars = Array.from({ length: 90 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() }));
     const glows = Array.from({ length: 10 }, () => ({ x: Math.random() * W, y: Math.random() * 70, p: Math.random() * 6 }));
-    const rocks = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * W, y: 10 + i * 14, v: 0.05 + Math.random() * 0.08, s: 2 + (i % 3) }));
+    const rocks = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * W, y: 46 + i * 8, v: 0.05 + Math.random() * 0.08, s: 2 + (i % 3) }));
     let hitAt: number | null = null;
     const debris: { x: number; y: number; vx: number; vy: number; l: number }[] = [];
     let comet = { x: -20, y: 0, t: 0 };
@@ -81,26 +81,26 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       const groundY = 100 + Math.min(40, lt * lt * 18); // ground drops away as we climb
       px(0, groundY + shake, W, H, "#1a2130");
       px(0, groundY + shake, W, 1, "#5b6b82");
-      px(30 + shake, groundY - 4 + shake, 28, 4, "#2c3647");
-      px(34 + shake, groundY - 30 + shake, 2, 26, "#5b6b82"); // tower
-      for (let y = 0; y < 26; y += 4) px(34 + shake, groundY - 30 + y + shake, 6, 1, "#5b6b82");
+      px(3 + shake, groundY - 4 + shake, 22, 4, "#2c3647");
+      px(6 + shake, groundY - 26 + shake, 2, 22, "#5b6b82"); // tower
+      for (let y = 0; y < 22; y += 4) px(6 + shake, groundY - 26 + y + shake, 5, 1, "#5b6b82");
 
       // rocket
       // asteroid that crosses the launch path and smacks the rocket
       const HIT = 0.7;
       if (launchAt.current && lt > 0.2) {
         const t = lt - 0.2;
-        const ax = hitAt === null ? -20 + (t / (HIT - 0.2)) * 64 : 44 - (lt - hitAt) * 90;
-        const ay = hitAt === null ? 30 + t * 12 : 36 + (lt - hitAt) * 40;
+        const ax = hitAt === null ? 75 - (t / (HIT - 0.2)) * 61 : 14 - (lt - hitAt) * 70;
+        const ay = hitAt === null ? 40 + t * 10 : 45 + (lt - hitAt) * 40;
         if (hitAt === null && lt >= HIT) {
           hitAt = lt; play("remove");
-          for (let i = 0; i < 18; i++) debris.push({ x: 45, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
+          for (let i = 0; i < 24; i++) debris.push({ x: 15, y: 45, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 42 });
         }
         if (!drawArtwork(c, "rock", ax - 5, ay - 5, 12)) { px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); }
       }
       for (let i = debris.length - 1; i >= 0; i--) {
         const d = debris[i]!; d.x += d.vx; d.y += d.vy; d.vy += 0.05; d.l--;
-        px(d.x, d.y, 1, 1, d.l > 20 ? "#fff4d0" : d.l > 10 ? "#ffb347" : "#6b5a4a");
+        px(d.x, d.y, d.l > 30 ? 2 : 1, d.l > 30 ? 2 : 1, d.l > 30 ? "#fff4d0" : d.l > 15 ? "#ffb347" : "#6b5a4a");
         if (d.l <= 0) debris.splice(i, 1);
       }
       // impact: knocked back down, then recovers
