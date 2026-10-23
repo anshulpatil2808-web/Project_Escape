@@ -1,9 +1,8 @@
 import { useEffect, useRef } from "react";
 import { drawArtwork } from "./artwork";
-import type { ModType } from "./engine";
 
-/** The UFO magnetically latches onto a module, then releases it into the void. */
-export function UfoCapture({ module, onDone }: { module: ModType | null; onDone: () => void }) {
+/** Time is up: the saucer beams the crew capsule up, then drops it into the void. */
+export function UfoCapture({ onDone }: { onDone: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -16,28 +15,49 @@ export function UfoCapture({ module, onDone }: { module: ModType | null; onDone:
       const t = (now - start) / 1000;
       c.clearRect(0, 0, 192, 108);
       c.fillStyle = "rgba(4,6,16,0.85)"; c.fillRect(0, 0, 192, 108);
-      const x = reduced ? 96 : Math.min(96, -24 + t * 180);
-      c.fillStyle = "#5ef2ff"; c.fillRect(x - 7, 24, 14, 5);
-      c.fillStyle = "#8a9bb3"; c.fillRect(x - 15, 29, 30, 5);
-      c.fillStyle = "#e8f0ff"; c.fillRect(x - 10, 28, 20, 2);
-      c.fillStyle = "#ffb347";
-      for (let i = -10; i <= 10; i += 5) c.fillRect(x + i, 34, 2, 1);
-      if (t > .65 && t < 1.65) {
-        c.strokeStyle = "#7dff8a"; c.lineWidth = 1;
-        c.beginPath(); c.moveTo(96, 35); c.lineTo(96, 56); c.stroke();
-        c.strokeRect(87, 52, 18, 18);
+      // drifting stars
+      for (let i = 0; i < 26; i++) {
+        const sx = (i * 37 + t * (6 + i % 5)) % 192;
+        c.fillStyle = i % 3 ? "rgba(232,240,255,0.5)" : "rgba(94,242,255,0.6)";
+        c.fillRect(Math.round(sx), (i * 53) % 88, 1, 1);
       }
-      const y = t < 1.65 ? 54 : 54 + Math.pow((t - 1.65) * 32, 2) / 18;
-      if (module) drawArtwork(c, module, 88, y, 16, 1);
-      else { c.fillStyle = "#e8f0ff"; c.fillRect(92, y + 3, 8, 8); }
+      const x = reduced ? 96 : Math.min(96, -30 + t * 150);
+      const bob = reduced ? 0 : Math.round(Math.sin(t * 3) * 1.5);
+      // tractor beam
+      if (t > 0.65 && t < 1.9) {
+        c.fillStyle = "rgba(125,255,138,0.16)";
+        for (let i = 0; i < 22; i++) c.fillRect(Math.round(x - 6 - i / 3), 34 + i, 12 + (i / 1.5), 1);
+        c.fillStyle = "rgba(232,255,235,0.5)";
+        c.fillRect(Math.round(x - 1), 34, 2, 22);
+      }
+      // crew capsule: sits, gets pulled up, then released into the void
+      let cy = 58;
+      if (t > 0.65 && t < 1.9) cy = 58 - Math.min(1, (t - 0.65) / 1.1) * 22;
+      else if (t >= 1.9) cy = 36 + Math.pow((t - 1.9) * 30, 2) / 22;
+      const tumble = t >= 1.9 ? Math.floor((t - 1.9) * 7) % 4 : 1;
+      if (!drawArtwork(c, "ship", x - 8, cy, 16, tumble)) {
+        c.fillStyle = "#1a2130"; c.fillRect(x - 5, cy + 3, 10, 10);
+        c.fillStyle = "#e8f0ff"; c.fillRect(x - 4, cy + 4, 8, 8);
+        c.fillStyle = "#5ef2ff"; c.fillRect(x - 2, cy + 5, 3, 3);
+      }
+      // saucer
+      if (!drawArtwork(c, "ufo", x - 34, 8 + bob, 68)) {
+        c.fillStyle = "#5ef2ff"; c.fillRect(x - 7, 24, 14, 5);
+        c.fillStyle = "#8a9bb3"; c.fillRect(x - 15, 29, 30, 5);
+        c.fillStyle = "#e8f0ff"; c.fillRect(x - 10, 28, 20, 2);
+        c.fillStyle = "#ffb347";
+        for (let i = -10; i <= 10; i += 5) c.fillRect(x + i, 34, 2, 1);
+      }
+      // the void
       c.fillStyle = "#07020e"; c.fillRect(0, 95, 192, 13);
       c.fillStyle = "#c040ff";
       for (let i = 0; i < 192; i += 4) c.fillRect(i, 94 + Math.round(Math.sin(i / 8 + t * 4)), 2, 1);
-      if (t < 2.8) raf = requestAnimationFrame(loop);
+      if (t > 2.6) { c.fillStyle = `rgba(192,64,255,${Math.min(0.5, (t - 2.6) * 0.8)})`; c.fillRect(0, 0, 192, 108); }
+      if (t < 3.2) raf = requestAnimationFrame(loop);
       else onDone();
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
-  return <div className="fixed inset-0 z-[55] pointer-events-none" role="status" aria-label="UFO captured a module and dropped it into the void"><canvas ref={ref} width={192} height={108} className="hole-canvas" /><p className="relative z-[56] mt-10 text-center font-pixel text-sm text-accent">TIME EXPIRED · UFO SALVAGE</p></div>;
+  return <div className="fixed inset-0 z-[55] pointer-events-none" role="status" aria-label="A UFO lifted the crew capsule and dropped it into the void"><canvas ref={ref} width={192} height={108} className="hole-canvas" /><p className="relative z-[56] mt-10 text-center font-pixel text-sm text-accent">TIME EXPIRED · UFO SALVAGE</p></div>;
 }
