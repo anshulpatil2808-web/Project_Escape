@@ -103,6 +103,8 @@ function Game() {
   };
   const hover = useRef<[number, number] | null>(null);
   const trail = useRef<Vec[]>([]);
+  const impact = useRef<{ x: number; y: number; at: number } | null>(null);
+  const popped = useRef(new Map<string, number>());
 
   const live = { grid, dirs, ship, vel, level, flying, li, won };
   const state = useRef(live);
@@ -143,7 +145,10 @@ function Game() {
       }
       else if (r.event === "blackhole") lose("blackhole");
       else if (r.event === "overload") lose("overload");
-      else if (r.event === "blocked") play("remove");
+      else if (r.event === "blocked") {
+        play("remove");
+        if (vel[0] || vel[1]) impact.current = { x: ship[0] + vel[0], y: ship[1] + vel[1], at: performance.now() };
+      }
     }, TICK);
     return () => clearInterval(id);
   }, [flying, lost, won]);
@@ -194,9 +199,39 @@ function Game() {
       // modules & rocks
       for (let y = 0; y < SIZE; y++)
         for (let x = 0; x < SIZE; x++) {
-          if (grid[y]![x] === "thruster") drawThruster(c, x * TILE, y * TILE, dirs[y]![x]!, t + x * 50);
-          else drawCell(c, grid[y]![x]!, x * TILE, y * TILE, t + x * 37 + y * 53, true);
+          const cell = grid[y]![x]!;
+          if (!cell) continue;
+          // placement pop: modules spring in from small
+          const born = popped.current.get(`${x},${y}`);
+          const age = born ? (performance.now() - born) / 220 : 1;
+          const k = age < 1 ? 0.5 + 0.5 * Math.sin(age * Math.PI * 0.75) / Math.sin(Math.PI * 0.75) : 1;
+          c.save();
+          if (k !== 1) { c.translate(x * TILE + 8, y * TILE + 8); c.scale(k, k); c.translate(-(x * TILE + 8), -(y * TILE + 8)); }
+          if (cell === "thruster") drawThruster(c, x * TILE, y * TILE, dirs[y]![x]!, t + x * 50);
+          else drawCell(c, cell, x * TILE, y * TILE, t + x * 37 + y * 53, true);
+          c.restore();
         }
+      // anchor tether: pulsing beam to the ship it is holding
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const ax = ship[0] + dx, ay = ship[1] + dy;
+        if (grid[ay]?.[ax] !== "shield") continue;
+        const on = Math.floor(t / 90) % 2;
+        c.fillStyle = on ? "#7ff0ff" : "#2fa8c8";
+        for (let i = 2; i < 14; i += 3) c.fillRect(ship[0] * TILE + 8 + dx * i - (dy ? 0 : 0), ship[1] * TILE + 8 + dy * i, 1, 1);
+        c.strokeStyle = `rgba(127,240,255,${0.3 + 0.3 * Math.sin(t / 120)})`;
+        c.strokeRect(ship[0] * TILE + 2.5, ship[1] * TILE + 2.5, 11, 11);
+      }
+      // bumper / wall impact shockwave
+      const im = impact.current;
+      if (im) {
+        const a = (performance.now() - im.at) / 350;
+        if (a < 1) {
+          const r = 2 + a * 9;
+          c.strokeStyle = `rgba(255,224,102,${1 - a})`;
+          c.strokeRect(Math.round(im.x * TILE + 8 - r) + 0.5, Math.round(im.y * TILE + 8 - r) + 0.5, Math.round(r * 2), Math.round(r * 2));
+          if (a < 0.2) { c.fillStyle = "rgba(255,244,208,0.6)"; c.fillRect(im.x * TILE, im.y * TILE, TILE, TILE); }
+        } else impact.current = null;
+      }
       // predicted path
       if (!flying && !won) {
         predict(grid, dirs, li, ship, vel).forEach(([x, y], i) => {
