@@ -54,7 +54,13 @@ describe("drift rules", () => {
     const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
     expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
-  it("every mission is solvable within its exact budget", () => {
+  it("coins start at 2 and grow by 3 each mission", () => {
+    expect(LEVELS.map((level) => level.budget)).toEqual([2, 5, 8, 11, 14]);
+  });
+  it("flight time starts at 20s and grows by 5s each mission", () => {
+    expect(LEVELS.map((level) => level.time)).toEqual([20, 25, 30, 35, 40]);
+  });
+  it("every mission is solvable within its budget", () => {
     const solutions: Mod[][] = [
       [[0, 2, "thruster", 1]],
       [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
@@ -65,7 +71,7 @@ describe("drift rules", () => {
     solutions.forEach((mods, li) => {
       const { g, d } = build(li, mods);
       const cost = mods.reduce((s, m) => s + (m[2] === "thruster" ? 2 : 1), 0);
-      expect(cost).toBe(LEVELS[li]!.budget);
+      expect(cost).toBeLessThanOrEqual(LEVELS[li]!.budget);
       expect(simulate(g, d, LEVELS[li]!)).toBe("portal");
     });
   });
