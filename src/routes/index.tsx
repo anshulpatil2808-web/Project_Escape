@@ -10,6 +10,7 @@ import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
 import { WhiteHole } from "@/game/WhiteHole";
+import { ARTWORK, drawArtwork } from "@/game/artwork";
 
 type Loss = "credits" | "time" | "overload" | "blackhole";
 const LOSS_TEXT: Record<Loss, string> = {
@@ -39,6 +40,7 @@ const TYPES = Object.keys(MODS) as ModType[];
 
 /** Directional thruster: armoured housing, nozzle on the firing side, flickering blast. */
 function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: number, t: number) {
+  if (drawArtwork(c, "thruster", x, y, 16, dir)) return;
   c.save();
   c.translate(x + 8, y + 8);
   c.rotate((dir * Math.PI) / 2); // drawn pointing up, rotated to its direction
@@ -424,9 +426,9 @@ function Game() {
             <h2 className="font-pixel mb-3 text-sm text-accent">MODULES</h2>
             <div className="grid gap-2">
               {TYPES.map((t) => (
-                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn text-left ${tool === t ? "pixel-btn-active" : ""}`}>
+                <Button variant="pixel" key={t} onClick={() => setTool(t)} className={`pixel-btn flex-col items-stretch text-left ${tool === t ? "pixel-btn-active" : ""}`}>
                   <span className="flex justify-between">
-                    <span>{MODS[t].name}</span>
+                    <span className="flex items-center gap-2"><img src={ARTWORK[t]} alt="" className="pixel-canvas h-9 w-9 object-contain" />{MODS[t].name}</span>
                     <span className={!sandbox && MODS[t].cost > wallet ? "text-destructive" : "text-accent"}>¢{MODS[t].cost}</span>
                   </span>
                   <span className="block text-lg text-muted-foreground">{MODS[t].desc}</span>

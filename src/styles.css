@@ -175,6 +175,8 @@
   padding: 1rem;
 }
 .pixel-btn {
+  height: auto;
+  min-height: 36px;
   font-size: 1.15rem;
   padding: 0.35rem 0.75rem;
   border: 2px solid var(--border);
@@ -185,6 +187,7 @@
 .pixel-btn:hover { transform: translate(-1px, -1px); border-color: var(--primary); }
 .pixel-btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .pixel-btn-active { border-color: var(--primary); color: var(--primary); background: oklch(0.88 0.14 200 / 0.12); }
+.pixel-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 :root { --hole: oklch(0.05 0.02 300); --hole-glow: oklch(0.7 0.25 320); }
 @theme inline { --color-hole-glow: var(--hole-glow); }

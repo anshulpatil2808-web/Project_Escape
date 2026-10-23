@@ -1,4 +1,5 @@
 import type { Cell, ModType } from "./engine";
+import { drawArtwork } from "./artwork";
 
 // Pixel-art palette (canvas content colors)
 const P = {
@@ -11,6 +12,12 @@ const P = {
 type Ctx = CanvasRenderingContext2D;
 /** Facing marker is always on the active side; base art faces upward. */
 export function drawDirectionalCell(c: Ctx, cell: ModType, x: number, y: number, t: number, dir: number) {
+  if (drawArtwork(c, cell, x, y, 16, dir)) {
+    c.save(); c.translate(x + 8, y + 8); c.rotate(dir * Math.PI / 2);
+    r(c, -3, -7, 6, 1, cell === "shield" ? P.green : P.amber);
+    r(c, -1, -8, 2, 1, P.cyan); c.restore();
+    return;
+  }
   c.save();
   c.translate(x + 8, y + 8);
   c.rotate(dir * Math.PI / 2);
@@ -43,6 +50,7 @@ export function drawCell(c: Ctx, cell: Cell, x: number, y: number, t: number, on
   const blink = Math.floor(t / 400) % 2 === 0;
   const f = Math.floor(t / 90);
   if (cell === "rock") {
+    if (drawArtwork(c, "rock", x, y, 16)) return;
     const wob = Math.round(Math.sin(t / 900 + x) * 0.6);
     r(c, x + 3, y + 4 + wob, 10, 8, P.rock);
     r(c, x + 4, y + 3 + wob, 7, 1, P.rock);
