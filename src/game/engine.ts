@@ -34,12 +34,10 @@ export interface Level {
 
 // Every level is checked by a solver (engine.test.ts): budget equals the cheapest solution.
 export const LEVELS: Level[] = [
-  { name: "Cold Start", brief: "Exact budget. One shot.", budget: 4, time: 25, ship: [1, 1], portal: [5, 4], rocks: [[5, 1]] },
-  { name: "Ricochet", brief: "The direct route is blocked. Use what falls.", budget: 5, time: 30, ship: [3, 0], portal: [0, 2], rocks: [[2, 1], [1, 2], [3, 4]] },
-  { name: "Dead Stop", brief: "Sometimes you need to stop before you go.", budget: 5, time: 30, ship: [0, 1], portal: [6, 2], rocks: [[6, 1], [4, 3], [2, 2]] },
-  { name: "Gravity Well", brief: "Climb against the pull.", budget: 6, time: 35, ship: [5, 4], portal: [0, 0], rocks: [[4, 3], [1, 2], [2, 4], [0, 4]] },
-  { name: "Needle", brief: "Thread the asteroid gap.", budget: 6, time: 35, ship: [6, 0], portal: [3, 5], rocks: [[2, 2], [4, 2], [3, 3], [5, 4], [1, 4]] },
-  { name: "Last Light", brief: "Every credit counts. Think three moves ahead.", budget: 7, time: 40, ship: [0, 0], portal: [6, 5], rocks: [[3, 0], [1, 3], [5, 2], [4, 4], [2, 5]] },
+  { name: "Cold Start", brief: "Exact budget, and only one answer works.", budget: 3, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
+  { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
+  { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
+  { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 6, time: 40, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
   { name: "Free Drift", brief: "Sandbox. Unlimited credits, no clock.", budget: 999, time: 0, ship: [3, 2], portal: [6, 0], rocks: [] },
 ];
 
