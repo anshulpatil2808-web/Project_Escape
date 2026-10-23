@@ -12,3 +12,4 @@
 - [x] Redesign level-clear warp (page dives into portal, emerges from next start)
 - [x] Bug sweep, clearer/larger wording, recheck hackathon checklist
 - [ ] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations
+- [ ] Fill more of the screen; add background comets
