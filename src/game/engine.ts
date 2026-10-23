@@ -33,10 +33,10 @@ export interface Level {
 }
 
 // Every level is checked by a solver (engine.test.ts): budget must cover the cheapest solution.
-// Coins start at 2 and grow by 3 per mission; flight time starts short and grows by 5s per mission.
+// Training has 2 coins; Cold Start has an explicit 8-point budget. Flight time grows by 5s per mission.
 export const LEVELS: Level[] = [
   { name: "Training", brief: "Put a thruster on the left of the ship, then press Launch.", budget: 2, time: 20, ship: [1, 2], portal: [5, 2], rocks: [] },
-  { name: "Cold Start", brief: "Exact budget, and only one answer works.", budget: 5, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
+  { name: "Cold Start", brief: "Steer around the asteroid beneath the ship to reach the lower portal.", budget: 8, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
   { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 8, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
   { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 11, time: 35, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
   { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 14, time: 40, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
