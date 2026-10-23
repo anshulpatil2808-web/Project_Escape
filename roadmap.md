@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Set the second level to 8 points; verify its displayed wallet
+- [x] Set the second level to 8 points; verified its displayed wallet
 - [x] Investigate and correct the physics issue shown in image-8.png; verify all five missions
 - [x] Highlight the Project Escape title
 - [x] Add uploaded checkpoint and void sound effects; confirm browser playback requests
