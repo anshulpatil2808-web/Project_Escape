@@ -216,3 +216,4 @@
 .hole-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 50; image-rendering: pixelated; }
 .hole-ui { position: fixed; inset: 0; z-index: 51; display: grid; place-items: end center; padding-bottom: 12vh; pointer-events: none; }
 .hole-ui > * { pointer-events: auto; }
+.hole-in { animation: holeIn 600ms steps(6) both; object-fit: cover; }
