@@ -8,10 +8,14 @@ type SpriteType = ModType | "reactor" | "solar" | "conduit";
 export type Cell = SpriteType | "rock" | null;
 export type Vec = [number, number];
 
+/** 0 = up, 1 = right, 2 = down, 3 = left */
+export const DIRS: Vec[] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+export const DIR_NAMES = ["UP", "RIGHT", "DOWN", "LEFT"];
+
 export const MODS: Record<ModType, { name: string; cost: number; desc: string }> = {
-  thruster: { name: "Pusher", cost: 2, desc: "Pushes the ship away when it's next to it" },
-  shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it" },
-  comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it" },
+  thruster: { name: "Thruster", cost: 2, desc: "Fires one way. A ship in its blast gets launched that way. Click it to rotate." },
+  shield: { name: "Anchor", cost: 3, desc: "Holds the ship still while it's next to it." },
+  comms: { name: "Bumper", cost: 1, desc: "Stops the ship dead when it hits it." },
 };
 
 export const SIZE = 7;
@@ -28,11 +32,13 @@ export interface Level {
   rocks: Vec[];
 }
 
+// Every level is checked by a solver (engine.test.ts): budget equals the cheapest solution.
 export const LEVELS: Level[] = [
-  { name: "First Push", brief: "Push the ship sideways into the portal.", budget: 6, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
-  { name: "Falling Catch", brief: "A rock blocks the way. Let it fall, then catch it.", budget: 6, time: 30, ship: [1, 1], portal: [5, 4], rocks: [[5, 1]] },
-  { name: "Rock Landing", brief: "Let the ship land on the rock, then launch it.", budget: 6, time: 30, ship: [1, 1], portal: [6, 3], rocks: [[1, 4], [3, 2], [5, 4]] },
-  { name: "Long Haul", brief: "Climb away from the black hole, then turn the corner.", budget: 8, time: 40, ship: [3, 4], portal: [6, 1], rocks: [[2, 2], [4, 2]] },
+  { name: "Training", brief: "Aim the thruster at the ship so its blast fires the ship right.", budget: 2, time: 30, ship: [1, 2], portal: [5, 2], rocks: [] },
+  { name: "Cold Start", brief: "Exact budget, and only one answer works.", budget: 3, time: 25, ship: [5, 2], portal: [1, 3], rocks: [[0, 5], [1, 0], [6, 4], [4, 0], [5, 3]] },
+  { name: "Ricochet", brief: "Two burns. Timing is everything.", budget: 4, time: 30, ship: [2, 4], portal: [5, 3], rocks: [[5, 2], [3, 1], [6, 1], [2, 2]] },
+  { name: "High Orbit", brief: "Climb against the pull, then cross the void.", budget: 4, time: 30, ship: [1, 3], portal: [5, 0], rocks: [[6, 4], [0, 3], [1, 5], [4, 3]] },
+  { name: "Gravity Well", brief: "Three burns, one solution. Think ahead.", budget: 6, time: 40, ship: [4, 4], portal: [0, 2], rocks: [[3, 2], [2, 4], [0, 1], [5, 3], [1, 5]] },
   { name: "Free Drift", brief: "Sandbox. Unlimited credits, no clock.", budget: 999, time: 0, ship: [3, 2], portal: [6, 0], rocks: [] },
 ];
 
@@ -41,6 +47,7 @@ export function makeGrid(level: Level): Cell[][] {
   level.rocks.forEach(([x, y]) => (g[y]![x] = "rock"));
   return g;
 }
+export const makeDirs = () => Array.from({ length: SIZE }, () => Array(SIZE).fill(1) as number[]);
 
 const isMod = (c: Cell): c is ModType => c === "thruster" || c === "shield" || c === "comms";
 const N4: Vec[] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -52,7 +59,7 @@ export function neighbours(g: Cell[][], [sx, sy]: Vec) {
 export type StepResult = { ship: Vec; vel: Vec; event: "move" | "blocked" | "held" | "portal" | "blackhole" | "overload" };
 
 /** One tick of the simulation. Rules are applied in this order. */
-export function step(g: Cell[][], level: Level, ship: Vec, vel: Vec): StepResult {
+export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel: Vec): StepResult {
   const [sx, sy] = ship;
   const adj = neighbours(g, ship);
   // 1. Overload: three or more modules touching the ship tear it apart
@@ -61,14 +68,15 @@ export function step(g: Cell[][], level: Level, ship: Vec, vel: Vec): StepResult
   if (adj.some((n) => n.c === "shield")) return { ship, vel: [0, 0], event: "held" };
 
   let v: Vec = vel;
-  // 3. Pushers next to the ship set its direction (away from them)
-  const pushers = adj.filter((n) => n.c === "thruster");
-  if (pushers.length) {
-    v = pushers.reduce<Vec>((a, p) => [a[0] + (sx - p.x), a[1] + (sy - p.y)], [0, 0]);
-  }
+  // 3. Thrusters whose blast points at the ship launch it in that direction
+  const firing = adj.filter((n) => {
+    if (n.c !== "thruster") return false;
+    const [dx, dy] = DIRS[dirs[n.y]![n.x]!]!;
+    return n.x + dx === sx && n.y + dy === sy;
+  });
+  if (firing.length) v = firing.reduce<Vec>((a, n) => { const d = DIRS[dirs[n.y]![n.x]!]!; return [a[0] + d[0], a[1] + d[1]]; }, [0, 0]);
   // 4. Not moving at all? The black hole pulls it down
   if (v[0] === 0 && v[1] === 0) v = [0, 1];
-  // One axis per tick: the stronger one wins, ties go vertical
   v = Math.abs(v[0]) > Math.abs(v[1]) ? [Math.sign(v[0]), 0] : [0, Math.sign(v[1])];
 
   const nx = sx + v[0], ny = sy + v[1];
@@ -76,6 +84,18 @@ export function step(g: Cell[][], level: Level, ship: Vec, vel: Vec): StepResult
   if (ny >= HORIZON_Y && nx >= 0 && nx < SIZE) return { ship: [nx, ny], vel: v, event: "blackhole" };
   if (nx < 0 || nx >= SIZE || ny < 0 || g[ny]![nx]) return { ship, vel: [0, 0], event: "blocked" };
   return { ship: [nx, ny], vel: v, event: "move" };
+}
+
+/** Run a full flight with no mid-flight changes. */
+export function simulate(g: Cell[][], dirs: number[][], level: Level, max = 60) {
+  let s: Vec = level.ship, v: Vec = [0, 0];
+  for (let i = 0; i < max; i++) {
+    const r = step(g, dirs, level, s, v);
+    if (r.event === "portal" || r.event === "blackhole" || r.event === "overload") return r.event;
+    if (r.event === "held") return "stuck";
+    s = r.ship; v = r.vel;
+  }
+  return "stuck";
 }
 
 /** Refund when a module is removed: half its cost, rounded down. */

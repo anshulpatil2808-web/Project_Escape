@@ -1,5 +1,11 @@
 # Roadmap
 - [x] Electric glowing box behind SPAGHETTIFIED
 - [x] White hole fission burst on "Try again"
-- [x] Replace puzzle with a brand-new concept: "Drift" (frictionless ship, black hole gravity)
+- [x] New "Drift" puzzle concept
+- [x] Rotatable thrusters
+- [x] Tactical look (HUD brackets, scanlines, sector tags, goal line)
+- [x] Training level, then hard levels checked by a solver
+- [x] Win: ship spirals through portal, next level loads automatically
+- [x] Footer credit: Made by Shravan Patil and Anshul Patil
+- [x] Rocket-launch start screen (Space / tap), checked on phone size
 - [ ] Swap in user's sound files (blocked: files not uploaded yet)

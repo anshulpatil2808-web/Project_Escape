@@ -12,3 +12,4 @@
 # Agent rules
 - Puzzle rules live as pure functions in src/game/engine.ts (step()) with tests in engine.test.ts; UI only renders and ticks. Why: keeps rules testable and every level provably solvable.
 - Black/white hole effects draw on tiny canvases scaled up with image-rendering: pixelated. Why: real pixelation instead of CSS blur.
+- Levels are generated/validated by brute-force search over module placements; each test case records a solution and budget equals the cheapest one. Why: guarantees hard levels stay solvable.

@@ -1,37 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeGrid, step, type Cell, type Vec } from "./engine";
+import { LEVELS, makeDirs, makeGrid, simulate, step, type Cell } from "./engine";
 
-const run = (g: Cell[][], li: number, max = 30) => {
-  const l = LEVELS[li]!;
-  let s: Vec = l.ship, v: Vec = [0, 0];
-  for (let i = 0; i < max; i++) {
-    const r = step(g, l, s, v);
-    if (r.event === "portal" || r.event === "blackhole" || r.event === "overload") return r.event;
-    s = r.ship; v = r.vel;
-  }
-  return "stuck";
+type Mod = [number, number, Cell, number];
+const build = (li: number, mods: Mod[]) => {
+  const g = makeGrid(LEVELS[li]!), d = makeDirs();
+  mods.forEach(([x, y, k, dir]) => { g[y]![x] = k; d[y]![x] = dir; });
+  return { g, d };
 };
 
 describe("drift rules", () => {
   it("a still ship falls into the black hole", () => {
-    expect(run(makeGrid(LEVELS[0]!), 0)).toBe("blackhole");
+    const { g, d } = build(2, []);
+    expect(simulate(g, d, LEVELS[2]!)).toBe("blackhole");
+  });
+  it("a thruster only launches the ship when its blast faces the ship", () => {
+    const facing = build(1, [[6, 2, "thruster", 3]]);
+    expect(step(facing.g, facing.d, LEVELS[1]!, [5, 2], [0, 0]).ship).toEqual([4, 2]);
+    const away = build(1, [[6, 2, "thruster", 1]]);
+    expect(step(away.g, away.d, LEVELS[1]!, [5, 2], [0, 0]).event).toBe("blocked"); // falls onto rock below
   });
   it("three modules touching the ship overload it", () => {
-    const g = makeGrid(LEVELS[0]!);
-    g[2]![0] = "thruster"; g[1]![1] = "comms"; g[3]![1] = "comms";
-    expect(run(g, 0)).toBe("overload");
+    const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
+    expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
-  it("every mission has a solution", () => {
-    const solutions: [number, number, number][][] = [
-      [[0, 2, 0]],
-      [[0, 1, 0], [3, 4, 0]],
-      [[0, 3, 0]],
-      [[3, 5, 0], [2, 1, 0]],
+  it("every mission is solvable within its exact budget", () => {
+    const solutions: Mod[][] = [
+      [[0, 2, "thruster", 1]],
+      [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
+      [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
+      [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
+      [[5, 1, "thruster", 3], [2, 2, "thruster", 3], [4, 5, "thruster", 0]],
     ];
     solutions.forEach((mods, li) => {
-      const g = makeGrid(LEVELS[li]!);
-      mods.forEach(([x, y]) => (g[y]![x] = "thruster"));
-      expect(run(g, li)).toBe("portal");
+      const { g, d } = build(li, mods);
+      const cost = mods.reduce((s, m) => s + (m[2] === "thruster" ? 2 : 1), 0);
+      expect(cost).toBe(LEVELS[li]!.budget);
+      expect(simulate(g, d, LEVELS[li]!)).toBe("portal");
     });
   });
 });
