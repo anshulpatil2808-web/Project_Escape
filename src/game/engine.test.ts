@@ -57,8 +57,8 @@ describe("drift rules", () => {
   it("coins start at 2 and grow by 3 each mission", () => {
     expect(LEVELS.map((level) => level.budget)).toEqual([2, 5, 8, 11, 14]);
   });
-  it("flight time starts at 20s and grows by 5s each mission", () => {
-    expect(LEVELS.map((level) => level.time)).toEqual([20, 25, 30, 35, 40]);
+  it("flight time starts at 20s and grows by 20s each mission", () => {
+    expect(LEVELS.map((level) => level.time)).toEqual([20, 40, 60, 80, 100]);
   });
   it("every mission is solvable within its budget", () => {
     const solutions: Mod[][] = [
