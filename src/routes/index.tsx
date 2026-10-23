@@ -5,7 +5,7 @@ import { Starfield } from "@/game/Starfield";
 import { Button } from "@/components/ui/button";
 import { RotateCw, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
 import { drawDirectionalCell, drawCell } from "@/game/sprites";
-import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
+import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, spinAttached, step, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
@@ -69,13 +69,14 @@ function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: nu
 function predict(g: Cell[][], dirs: number[][], li: number, ship: Vec, vel: Vec) {
   const level = LEVELS[li]!;
   const path: Vec[] = [];
-  let s = ship, v = vel;
+  let s = ship, v = vel, d = dirs;
   for (let i = 0; i < 16; i++) {
-    const r = step(g, dirs, level, s, v);
+    const r = step(g, d, level, s, v);
     if (r.event === "held") break;
     path.push(r.ship);
     if (r.event !== "move" && r.event !== "blocked") break;
     s = r.ship; v = r.vel;
+    d = spinAttached(g, d);
   }
   return path;
 }
