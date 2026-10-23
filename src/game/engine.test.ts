@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeDirs, makeGrid, refund, simulate, step, type Cell } from "./engine";
+import { LEVELS, MODS, makeDirs, makeGrid, refund, simulate, step, type Cell, type ModType } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
