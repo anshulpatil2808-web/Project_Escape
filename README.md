@@ -2,6 +2,12 @@
 
 A space puzzle game where you guide a drifting spaceship to an escape portal.
 
+## 🎮 Play the Game
+
+**[▶ Play Project Escape](https://projectescape.lovable.app)**
+
+Play in your browser—no installation required.
+
 ## How to Play
 
 1. Place modules on the board to guide the ship.
