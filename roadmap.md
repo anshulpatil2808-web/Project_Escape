@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] Meaningful rotation for anchor, bumper and thruster, with touch controls and rule tests
+- [ ] Verify automatic level travel and whole-site white-hole emergence
 - [x] Electric glowing box behind SPAGHETTIFIED
 - [x] White hole fission burst on "Try again"
 - [x] New "Drift" puzzle concept
