@@ -61,6 +61,17 @@ export function neighbours(g: Cell[][], [sx, sy]: Vec) {
   return N4.map(([dx, dy]) => ({ x: sx + dx, y: sy + dy, c: g[sy + dy]?.[sx + dx] ?? null })).filter((n) => isMod(n.c));
 }
 
+/** A thruster clipped onto an anchor or bumper spins that module one step clockwise. */
+export function spinAttached(g: Cell[][], dirs: number[][]): number[][] {
+  const next = dirs.map((row) => row.slice());
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    const c = g[y]?.[x];
+    if (c !== "shield" && c !== "comms") continue;
+    if (N4.some(([dx, dy]) => g[y + dy]?.[x + dx] === "thruster")) next[y]![x] = ((dirs[y]?.[x] ?? 0) + 1) % 4;
+  }
+  return next;
+}
+
 export type StepResult = { ship: Vec; vel: Vec; event: "move" | "blocked" | "held" | "portal" | "blackhole" | "overload" };
 
 /** One tick of the simulation. Rules are applied in this order. */

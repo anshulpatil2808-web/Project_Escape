@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, MODS, makeDirs, makeGrid, refund, simulate, step, type Cell, type ModType } from "./engine";
+import { LEVELS, MODS, makeDirs, makeGrid, refund, simulate, spinAttached, step, type Cell, type ModType } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
@@ -79,6 +79,14 @@ describe("drift rules", () => {
   });
   it("recorded solutions cost exactly the cheapest the solver found", () => {
     expect(SOLUTIONS.map(costOf)).toEqual([2, 3, 3, 3, 5]);
+  });
+  it("a thruster clipped onto a bumper turns it one step clockwise", () => {
+    const { g, d } = build(0, [[3, 3, "comms", 0], [4, 3, "thruster", 1]]);
+    expect(spinAttached(g, d)[3]?.[3]).toBe(1);
+  });
+  it("a module with no thruster next to it keeps its facing", () => {
+    const { g, d } = build(0, [[3, 3, "shield", 0]]);
+    expect(spinAttached(g, d)[3]?.[3]).toBe(0);
   });
 });
 
