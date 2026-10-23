@@ -68,13 +68,15 @@ export function step(g: Cell[][], dirs: number[][], level: Level, ship: Vec, vel
   if (adj.some((n) => n.c === "shield")) return { ship, vel: [0, 0], event: "held" };
 
   let v: Vec = vel;
-  // 3. Thrusters whose blast points at the ship launch it in that direction
+  // 3. Thrusters lined up with the ship (blast toward it, or exhaust pointing away like an engine)
+  //    push it forward, away from the thruster. Sideways thrusters do nothing.
   const firing = adj.filter((n) => {
     if (n.c !== "thruster") return false;
     const [dx, dy] = DIRS[dirs[n.y]![n.x]!]!;
-    return n.x + dx === sx && n.y + dy === sy;
+    const ax = sx - n.x, ay = sy - n.y;
+    return (dx === ax && dy === ay) || (dx === -ax && dy === -ay);
   });
-  if (firing.length) v = firing.reduce<Vec>((a, n) => { const d = DIRS[dirs[n.y]![n.x]!]!; return [a[0] + d[0], a[1] + d[1]]; }, [0, 0]);
+  if (firing.length) v = firing.reduce<Vec>((a, n) => [a[0] + (sx - n.x), a[1] + (sy - n.y)], [0, 0]);
   // 4. Not moving at all? The black hole pulls it down
   if (v[0] === 0 && v[1] === 0) v = [0, 1];
   v = Math.abs(v[0]) > Math.abs(v[1]) ? [Math.sign(v[0]), 0] : [0, Math.sign(v[1])];
