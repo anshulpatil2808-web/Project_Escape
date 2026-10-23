@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVELS, makeDirs, makeGrid, refund, simulate, step, type Cell } from "./engine";
+import { LEVELS, MODS, makeDirs, makeGrid, refund, simulate, spinAttached, step, type Cell, type ModType } from "./engine";
 
 type Mod = [number, number, Cell, number];
 const build = (li: number, mods: Mod[]) => {
@@ -7,6 +7,16 @@ const build = (li: number, mods: Mod[]) => {
   mods.forEach(([x, y, k, dir]) => { g[y]![x] = k; d[y]![x] = dir; });
   return { g, d };
 };
+
+/** Solver-verified cheapest solutions (brute force over every placement). */
+const SOLUTIONS: Mod[][] = [
+  [[0, 2, "thruster", 1]],
+  [[0, 2, "comms", 1], [6, 2, "thruster", 1]],
+  [[1, 3, "thruster", 1], [2, 5, "comms", 1]],
+  [[0, 0, "thruster", 1], [1, 4, "comms", 1]],
+  [[5, 1, "thruster", 1], [2, 2, "thruster", 1], [4, 5, "comms", 1]],
+];
+const costOf = (mods: Mod[]) => mods.reduce((s, m) => s + MODS[m[2] as ModType].cost, 0);
 
 describe("drift rules", () => {
   it("ends with Gravity Well after five missions, without Free Drift", () => {
@@ -54,26 +64,29 @@ describe("drift rules", () => {
     const { g, d } = build(1, [[6, 2, "comms", 1], [4, 2, "comms", 1], [5, 1, "comms", 1]]);
     expect(simulate(g, d, LEVELS[1]!)).toBe("overload");
   });
-  it("coins start at 2 and grow by 3 each mission", () => {
-    expect(LEVELS.map((level) => level.budget)).toEqual([2, 5, 8, 11, 14]);
+  it("coins start at 6 and grow by 4 each mission", () => {
+    expect(LEVELS.map((level) => level.budget)).toEqual([6, 10, 14, 18, 22]);
   });
-  it("flight time starts at 20s and grows by 5s each mission", () => {
-    expect(LEVELS.map((level) => level.time)).toEqual([20, 25, 30, 35, 40]);
+  it("the clock starts at 30s and grows by 20s each mission", () => {
+    expect(LEVELS.map((level) => level.time)).toEqual([30, 50, 70, 90, 110]);
   });
   it("every mission is solvable within its budget", () => {
-    const solutions: Mod[][] = [
-      [[0, 2, "thruster", 1]],
-      [[0, 2, "comms", 1], [6, 2, "thruster", 3]],
-      [[1, 3, "thruster", 1], [2, 5, "thruster", 0]],
-      [[0, 0, "thruster", 1], [1, 4, "thruster", 0]],
-      [[5, 1, "thruster", 3], [2, 2, "thruster", 3], [4, 5, "thruster", 0]],
-    ];
-    solutions.forEach((mods, li) => {
+    SOLUTIONS.forEach((mods, li) => {
       const { g, d } = build(li, mods);
-      const cost = mods.reduce((s, m) => s + (m[2] === "thruster" ? 2 : 1), 0);
-      expect(cost).toBeLessThanOrEqual(LEVELS[li]!.budget);
+      expect(costOf(mods)).toBeLessThanOrEqual(LEVELS[li]!.budget);
       expect(simulate(g, d, LEVELS[li]!)).toBe("portal");
     });
+  });
+  it("recorded solutions cost exactly the cheapest the solver found", () => {
+    expect(SOLUTIONS.map(costOf)).toEqual([2, 3, 3, 3, 5]);
+  });
+  it("a thruster clipped onto a bumper turns it one step clockwise", () => {
+    const { g, d } = build(0, [[3, 3, "comms", 0], [4, 3, "thruster", 1]]);
+    expect(spinAttached(g, d)[3]?.[3]).toBe(1);
+  });
+  it("a module with no thruster next to it keeps its facing", () => {
+    const { g, d } = build(0, [[3, 3, "shield", 0]]);
+    expect(spinAttached(g, d)[3]?.[3]).toBe(0);
   });
 });
 

@@ -236,10 +236,11 @@
 @keyframes pageEmerge { 0% { transform: scale(.015); filter: brightness(3); opacity: 0; }
   25% { opacity: 1; } 100% { transform: none; filter: none; opacity: 1; } }
 .start-screen { position: fixed; inset: 0; z-index: 60; cursor: pointer; background: var(--background); }
-.start-ui { position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; pointer-events: none; }
+.start-ui { position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem 1rem 8vh; pointer-events: none; }
 .start-ui-out { animation: startOut 600ms steps(6) forwards; }
 @keyframes startOut { to { opacity: 0; transform: translateY(-40px); } }
 .blink { animation: danger 1s steps(2) infinite; }
+.start-card { max-width: 20rem; margin-top: 1.6rem; padding: 1.2rem 1.3rem; background: oklch(0.13 0.035 270 / 0.92); border: 2px solid var(--border); box-shadow: 6px 6px 0 oklch(0 0 0 / 0.45); }
 .goal-line { border: 2px dashed var(--border); padding: .4rem .8rem; background: var(--card); }
 .tactical { padding: 14px; background:
   linear-gradient(var(--primary), var(--primary)) top left / 14px 2px no-repeat,

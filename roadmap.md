@@ -18,8 +18,16 @@
 - [x] Win: ship spirals through portal, next level loads automatically
 - [x] Footer credit: Made by Shravan Patil and Anshul Patil
 - [x] Rocket-launch start screen (Space / tap), checked on phone size
-- [ ] Swap in user's sound files (blocked: files not uploaded yet)
+- [x] Swap in user's sound files (checkpoint on clear, void on loss)
 - [x] Redesign level-clear warp (page dives into portal, emerges from next start)
 - [x] Bug sweep, clearer/larger wording, recheck hackathon checklist
 - [x] Fix error from screenshots; rotation for all modules; polish anchor/bumper/animations
 - [x] Fill more of the screen; add background comets
+- [x] Solve every mission with a brute-force solver; budgets 6/10/14/18/22, clock 30/50/70/90/110
+- [x] Lock later missions until the previous one is beaten
+- [x] Make the animations smoother (ship glides between cells instead of jumping per tick)
+- [x] Use the new uploads: UFO art in the timeout kill screen, rocket on the welcome screen, capsule as the crew module thrown into the void
+- [x] Use the newest upload as the ship the modules move on the board
+- [x] A thruster attached to an anchor or bumper turns that module
+- [ ] Make the GitHub repository match the game (needs Git sync connected and the draft accepted by the user)
+- [ ] Capture the saucer scene on camera at zero to confirm it plays

@@ -31,7 +31,7 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
     const c = ref.current!.getContext("2d")!;
     const stars = Array.from({ length: 90 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() }));
     const glows = Array.from({ length: 10 }, () => ({ x: Math.random() * W, y: Math.random() * 70, p: Math.random() * 6 }));
-    const rocks = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * W, y: 10 + i * 14, v: 0.05 + Math.random() * 0.08, s: 2 + (i % 3) }));
+    const rocks = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * W, y: 46 + i * 8, v: 0.05 + Math.random() * 0.08, s: 2 + (i % 3) }));
     let hitAt: number | null = null;
     const debris: { x: number; y: number; vx: number; vy: number; l: number }[] = [];
     let comet = { x: -20, y: 0, t: 0 };
@@ -76,72 +76,71 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       if (comet.t > -120) { comet.x += 1.6; comet.y += 0.4; for (let i = 0; i < 8; i++) px(comet.x - i * 1.6, comet.y - i * 0.4, 1, 1, i < 2 ? "#ffffff" : i < 5 ? "#9fe8ff" : "#2a5a80"); }
       // planet & black hole on the horizon
       for (let i = 0; i < 18; i++) { const r = 18 - i; px(128 - r + shake, 30 - Math.round(r * 0.3), r * 2, 1, i % 4 === 0 ? "#c040ff" : "#2a0a3a"); }
-      px(122 + shake, 26, 12, 8, "#000000");
+      px(124 + shake, 27, 8, 6, "#06040f");
+      px(123 + shake, 26, 10, 1, "#5ef2ff");
       // ground pad
-      const groundY = 100 + Math.min(40, lt * lt * 18); // ground drops away as we climb
+      const groundY = 100; // the pad stays put while the ship climbs away from it
       px(0, groundY + shake, W, H, "#1a2130");
       px(0, groundY + shake, W, 1, "#5b6b82");
-      px(66 + shake, groundY - 4 + shake, 28, 4, "#2c3647");
-      px(70 + shake, groundY - 30 + shake, 2, 26, "#5b6b82"); // tower
-      for (let y = 0; y < 26; y += 4) px(70 + shake, groundY - 30 + y + shake, 6, 1, "#5b6b82");
+      px(3 + shake, groundY - 4 + shake, 22, 4, "#2c3647");
+      px(6 + shake, groundY - 26 + shake, 2, 22, "#5b6b82"); // tower
+      for (let y = 0; y < 22; y += 4) px(6 + shake, groundY - 26 + y + shake, 5, 1, "#5b6b82");
 
       // rocket
       // asteroid that crosses the launch path and smacks the rocket
       const HIT = 0.7;
       if (launchAt.current && lt > 0.2) {
         const t = lt - 0.2;
-        const ax = hitAt === null ? 150 - (t / (HIT - 0.2)) * 69 : 81 + (lt - hitAt) * 90;
-        const ay = hitAt === null ? 30 + t * 12 : 36 + (lt - hitAt) * 40;
+        const ax = hitAt === null ? 75 - (t / (HIT - 0.2)) * 61 : 14 - (lt - hitAt) * 70;
+        const ay = hitAt === null ? 40 + t * 10 : 45 + (lt - hitAt) * 40;
         if (hitAt === null && lt >= HIT) {
           hitAt = lt; play("remove");
-          for (let i = 0; i < 18; i++) debris.push({ x: 82, y: 38, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 30 });
+          for (let i = 0; i < 24; i++) debris.push({ x: 15, y: 45, vx: (Math.random() - 0.3) * 3, vy: (Math.random() - 0.5) * 3, l: 42 });
         }
-        if (!drawArtwork(c, "rock", ax - 5, ay - 5, 12)) { px(ax - 3, ay - 3, 7, 7, "#5a4838"); px(ax - 2, ay - 4, 5, 9, "#5a4838"); }
+        if (!drawArtwork(c, "rock", ax - 8, ay - 8, 16)) { px(ax - 5, ay - 5, 11, 11, "#5a4838"); px(ax - 3, ay - 7, 7, 14, "#5a4838"); px(ax - 4, ay - 3, 3, 3, "#9a7c58"); }
       }
       for (let i = debris.length - 1; i >= 0; i--) {
         const d = debris[i]!; d.x += d.vx; d.y += d.vy; d.vy += 0.05; d.l--;
-        px(d.x, d.y, 1, 1, d.l > 20 ? "#fff4d0" : d.l > 10 ? "#ffb347" : "#6b5a4a");
+        px(d.x, d.y, d.l > 30 ? 2 : 1, d.l > 30 ? 2 : 1, d.l > 30 ? "#fff4d0" : d.l > 15 ? "#ffb347" : "#6b5a4a");
         if (d.l <= 0) debris.splice(i, 1);
       }
       // impact: knocked back down, then recovers
       const since = hitAt === null ? -1 : lt - hitAt;
       const bump = since >= 0 ? 14 * Math.exp(-since * 4) * Math.min(1, since * 12) : 0;
       const kickX = since >= 0 && since < 0.3 ? Math.round((Math.random() - 0.5) * 4) : 0;
-      if (since >= 0 && since < 0.08) { c.fillStyle = "rgba(255,240,200,0.5)"; c.fillRect(0, 0, W, H); }
-      const climb = launchAt.current ? lt * lt * 70 - bump : Math.sin(now / 600) * 0.5;
-      const rx = 78 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 40 - climb + shake;
-      // nose cone (tapering red)
-      px(rx + 2, ry - 8, 2, 2, "#ff5a5a");
-      px(rx + 1, ry - 6, 4, 2, "#ff7a6a");
-      px(rx, ry - 4, 6, 3, "#ff5a5a");
-      // hull with side shading
-      px(rx, ry - 1, 6, 27, "#e8f0ff");
-      px(rx, ry - 1, 1, 27, "#b8c4d8");
-      px(rx + 5, ry - 1, 1, 27, "#c8d4e8");
-      // porthole
-      px(rx + 1, ry + 4, 4, 4, "#8a9bb3");
-      px(rx + 2, ry + 5, 2, 2, "#5ef2ff");
-      // racing stripe
-      px(rx, ry + 12, 6, 1, "#8a9bb3");
-      px(rx, ry + 13, 6, 2, "#ff5a5a");
-      // fins tapering outward
-      px(rx - 2, ry + 18, 2, 10, "#ff5a5a");
-      px(rx - 2, ry + 16, 1, 3, "#ff5a5a");
-      px(rx + 6, ry + 18, 2, 10, "#ff5a5a");
-      px(rx + 7, ry + 16, 1, 3, "#ff5a5a");
-      // engine bell
-      px(rx + 1, ry + 26, 4, 3, "#5b6b82");
-      px(rx + 2, ry + 29, 2, 1, "#3a4150");
+      const climb = launchAt.current ? Math.min(52, lt * lt * 45) - bump : Math.sin(now / 600) * 0.5;
+      const rx = 11 + shake + kickX - Math.round(bump * 0.3), ry = groundY - 30 - climb + shake;
+      // rocket: the uploaded pixel-art fighter (simple silhouette until it loads)
+      const RS = 28;
+      if (!drawArtwork(c, "rocket", rx + 3 - RS / 2, ry + 11 - RS / 2, RS)) {
+        px(rx + 2, ry - 2, 2, 2, "#ff5a5a");
+        px(rx + 1, ry, 4, 20, "#e8f0ff");
+        px(rx - 1, ry + 12, 2, 8, "#ff5a5a");
+        px(rx + 5, ry + 12, 2, 8, "#ff5a5a");
+      }
+      // impact burst follows the nose
+      if (since >= 0 && since < 0.22) {
+        const k = 2 + Math.round(since * 26);
+        const bx = rx + 3, by = ry - 2;
+        px(bx - k, by, k, 1, "#fff4d0");
+        px(bx + 1, by, k, 1, "#ffb347");
+        px(bx, by - k, 1, k, "#fff4d0");
+        px(bx, by + 1, 1, k, "#ffb347");
+        px(bx - k - 1, by - k - 1, 2, 2, "#fff4d0");
+        px(bx + k, by - k - 1, 2, 2, "#ffb347");
+        px(bx - k - 1, by + k, 2, 2, "#ffb347");
+        px(bx + k, by + k, 2, 2, "#fff4d0");
+      }
       // flame only once the engines fire
       const flame = launchAt.current ? 8 + Math.random() * 10 : 0;
       if (flame > 0) {
-        px(rx + 1, ry + 30, 4, flame, "#ffb347");
-        px(rx + 2, ry + 30, 2, flame * 0.6, "#fff4d0");
+        px(rx - 1, ry + 25, 8, flame, "#ffb347");
+        px(rx + 1, ry + 25, 4, flame * 0.6, "#fff4d0");
       }
       // smoke clouds
       const rate = launchAt.current ? 6 : 0.3;
       for (let i = 0; i < rate; i++)
-        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 30 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
+        if (Math.random() < rate / 6) smoke.push({ x: rx + 3, y: Math.min(ry + 24 + flame, groundY - 2), vx: (Math.random() - 0.5) * 2.5, vy: -Math.random() * 0.3, l: 60 });
       for (let i = smoke.length - 1; i >= 0; i--) {
         const s = smoke[i]!;
         s.x += s.vx; s.y += s.vy; s.vx *= 0.97; s.l--;
@@ -162,17 +161,19 @@ export function StartScreen({ onStart }: { onStart: () => void }) {
       <canvas ref={ref} width={W} height={H} className="hole-canvas" aria-hidden />
       <div className={`start-ui ${launching ? "start-ui-out" : ""}`}>
         <h1 className="title-glitch font-pixel text-3xl text-primary md:text-6xl">PROJECT ESCAPE</h1>
-        <p className="mt-4 max-w-md text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
-        <ul className="mx-auto mt-5 max-w-md space-y-1 text-left text-lg text-muted-foreground">
-          <li>▸ Place thrusters, anchors and bumpers on the grid</li>
-          <li>▸ Turn any module to choose its active face</li>
-          <li>▸ Hit Launch and watch the ship drift</li>
-          <li>▸ Reach the portal before the black hole eats you</li>
-        </ul>
-        <p className="blink font-pixel mt-8 text-sm text-accent md:text-base">
-          <span className="hidden md:inline">PRESS SPACE TO LAUNCH</span>
-          <span className="md:hidden">TAP TO LAUNCH</span>
-        </p>
+        <div className="start-card">
+          <p className="text-2xl text-foreground">Your ship has no brakes. A black hole wants it. Aim thrusters to fly it home.</p>
+          <ul className="mx-auto mt-5 space-y-1 text-left text-lg text-muted-foreground">
+            <li>▸ Place thrusters, anchors and bumpers on the grid</li>
+            <li>▸ Turn any module to choose its active face</li>
+            <li>▸ Hit Launch and watch the ship drift</li>
+            <li>▸ Reach the portal before the black hole eats you</li>
+          </ul>
+          <p className="blink font-pixel mt-8 text-sm text-accent md:text-base">
+            <span className="hidden md:inline">PRESS SPACE TO LAUNCH</span>
+            <span className="md:hidden">TAP TO LAUNCH</span>
+          </p>
+        </div>
       </div>
       <p className="credit absolute bottom-4 left-0 right-0 z-[52] text-center text-lg text-muted-foreground">Made by Shravan Patil and Anshul Patil</p>
     </div>

@@ -5,7 +5,7 @@ import { Starfield } from "@/game/Starfield";
 import { Button } from "@/components/ui/button";
 import { RotateCw, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
 import { drawDirectionalCell, drawCell } from "@/game/sprites";
-import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, step, type Cell, type ModType, type Vec } from "@/game/engine";
+import { DIRS, DIR_NAMES, HORIZON_Y, LEVELS, MODS, SIZE, facesShip, makeDirs, makeGrid, refund, spinAttached, step, type Cell, type ModType, type Vec } from "@/game/engine";
 import { StartScreen } from "@/game/StartScreen";
 import { play } from "@/game/sound";
 import { BlackHole } from "@/game/BlackHole";
@@ -69,13 +69,14 @@ function drawThruster(c: CanvasRenderingContext2D, x: number, y: number, dir: nu
 function predict(g: Cell[][], dirs: number[][], li: number, ship: Vec, vel: Vec) {
   const level = LEVELS[li]!;
   const path: Vec[] = [];
-  let s = ship, v = vel;
+  let s = ship, v = vel, d = dirs;
   for (let i = 0; i < 16; i++) {
-    const r = step(g, dirs, level, s, v);
+    const r = step(g, d, level, s, v);
     if (r.event === "held") break;
     path.push(r.ship);
     if (r.event !== "move" && r.event !== "blocked") break;
     s = r.ship; v = r.vel;
+    d = spinAttached(g, d);
   }
   return path;
 }
@@ -91,7 +92,9 @@ function Game() {
   const [flying, setFlying] = useState(false);
   const [won, setWon] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [ufo, setUfo] = useState<{ module: ModType | null; cell: Vec | null } | null>(null);
+  const [ufo, setUfo] = useState(false);
+  /** highest mission index the player may open; beating a mission unlocks the next */
+  const [unlocked, setUnlocked] = useState(0);
   const [wallet, setWallet] = useState(LEVELS[0]!.budget);
   const [timeLeft, setTimeLeft] = useState(LEVELS[0]!.time);
   const [lost, setLost] = useState<Loss | null>(null);
@@ -113,10 +116,12 @@ function Game() {
   };
   const hover = useRef<[number, number] | null>(null);
   const trail = useRef<Vec[]>([]);
+  /** the ship's drawn position eases between cells over one tick */
+  const shipGlide = useRef<{ from: Vec; to: Vec; at: number } | null>(null);
   const impact = useRef<{ x: number; y: number; at: number } | null>(null);
   const popped = useRef(new Map<string, number>());
 
-  const locked = !started || !!lost || emerging || !!portalFx || tunnel || finished || !!ufo;
+  const locked = !started || !!lost || emerging || !!portalFx || tunnel || finished || ufo;
   const live = { grid, dirs, ship, vel, level, flying, li, won, tool, locked };
   const queueTransition = (action: () => void, delay: number) => { transitionTimers.current.push(setTimeout(action, delay)); };
   useEffect(() => () => transitionTimers.current.forEach(clearTimeout), []);
@@ -138,8 +143,10 @@ function Game() {
       trail.current = [...trail.current.slice(-8), ship];
       setShip(r.ship);
       setVel(r.vel);
+      setDirs((d) => spinAttached(grid, d));
       if (r.event === "portal") {
         setWon(true); setFlying(false); play("win");
+        setUnlocked((u) => Math.max(u, li + 1));
         warp.current = { at: performance.now(), kind: "out" };
         // ship passes through the portal, then the next level starts on its own
         if (li < LEVELS.length - 1) {
@@ -169,25 +176,17 @@ function Game() {
     return () => clearInterval(id);
   }, [flying, lost, won]);
 
-  // countdown while flying
+  // the clock runs the whole time a mission is open — planning included
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (sandbox || !started || lost || won || finished) return;
     const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(id);
-  }, [flying, sandbox]);
+  }, [sandbox, started, lost, won, finished]);
   useEffect(() => {
-    if (!flying || sandbox) return;
+    if (sandbox || !started || lost || won || finished) return;
     if (timeLeft <= 0) {
       setFlying(false);
-      let target: { module: ModType | null; cell: Vec | null } = { module: null, cell: null };
-      for (let y = 0; y < SIZE; y++) {
-        for (let x = 0; x < SIZE; x++) {
-          const module = grid[y]?.[x];
-          if (module === "thruster" || module === "shield" || module === "comms") { target = { module, cell: [x, y] }; break; }
-        }
-        if (target.cell) break;
-      }
-      setUfo(target); play("warn");
+      setUfo(true); play("warn");
     }
     else if (timeLeft <= 5) play("warn");
   }, [timeLeft]);
@@ -276,7 +275,15 @@ function Game() {
       // ship
       const [sx, sy] = ship;
       const bob = Math.round(Math.sin(t / 180));
-      const ox = sx * TILE, oy = sy * TILE + bob;
+      // glide between cells instead of jumping one cell per tick
+      if (!shipGlide.current || shipGlide.current.to[0] !== sx || shipGlide.current.to[1] !== sy) {
+        shipGlide.current = { from: shipGlide.current?.to ?? ([sx, sy] as Vec), to: [sx, sy], at: performance.now() };
+      }
+      const gl = shipGlide.current;
+      const gk = Math.min(1, (performance.now() - gl.at) / TICK);
+      const ge = 1 - Math.pow(1 - gk, 3);
+      const ox = (gl.from[0] + (gl.to[0] - gl.from[0]) * ge) * TILE;
+      const oy = (gl.from[1] + (gl.to[1] - gl.from[1]) * ge) * TILE + bob;
       const w = warp.current;
       const wt = w ? (performance.now() - w.at) / 1000 : 9;
       c.save();
@@ -293,10 +300,12 @@ function Game() {
           c.fillRect(Math.round(ox + 8 + Math.cos(a) * r), Math.round(oy + 8 + Math.sin(a) * r), 1, 1);
         }
       }
-      c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
-      c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
-      c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
-      c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      if (!drawArtwork(c, "ship", ox + 1, oy + 1, 14)) {
+        c.fillStyle = "#1a2130"; c.fillRect(ox + 4, oy + 4, 8, 8);
+        c.fillStyle = "#e8f0ff"; c.fillRect(ox + 5, oy + 5, 6, 6);
+        c.fillStyle = "#5ef2ff"; c.fillRect(ox + 7, oy + 6, 2, 2);
+        c.fillStyle = "#ff5a5a"; c.fillRect(ox + 5, oy + 10, 1, 1); c.fillRect(ox + 10, oy + 10, 1, 1);
+      }
       if (vel[0] || vel[1]) {
         const f = Math.floor(t / 80) % 2;
         c.fillStyle = f ? "#ffb347" : "#fff4d0";
@@ -396,7 +405,7 @@ function Game() {
     if (!l) return;
     setSelected(null);
     setFinished(false);
-    setUfo(null);
+    setUfo(false);
     warp.current = null;
     impact.current = null;
     popped.current.clear();
@@ -404,6 +413,7 @@ function Game() {
     setGrid(makeGrid(l));
     setDirs(makeDirs());
     setShip(l.ship);
+    shipGlide.current = null;
     setVel([0, 0]);
     setFlying(false);
     setWon(false);
@@ -438,8 +448,8 @@ function Game() {
         </p>
         <div className="mb-4 flex flex-wrap justify-center gap-2">
           {LEVELS.map((l, i) => (
-            <Button variant="pixel" key={l.name} disabled={locked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
-              {i + 1}. {l.name}
+            <Button variant="pixel" key={l.name} disabled={locked || i > unlocked} onClick={() => loadLevel(i)} className={`pixel-btn ${i === li ? "pixel-btn-active" : ""}`}>
+              {i + 1}. {l.name}{i > unlocked ? " · LOCKED" : ""}
             </Button>
           ))}
         </div>
@@ -537,11 +547,7 @@ function Game() {
       {lost && <BlackHole reason={LOSS_TEXT[lost]} onRetry={() => { loadLevel(li); setEmerging(true); play("power"); }} />}
       {emerging && <WhiteHole onDone={() => setEmerging(false)} />}
       {finished && <ExitScreen onReplay={() => { loadLevel(0); setEmerging(true); }} onExit={() => { loadLevel(0); setStarted(false); }} />}
-      {ufo && <UfoCapture module={ufo.module} onDone={() => {
-        const cell = ufo.cell;
-        if (cell) setGrid((g) => g.map((row, y) => row.map((value, x) => x === cell[0] && y === cell[1] ? null : value)));
-        setUfo(null); lose("time");
-      }} />}
+      {ufo && <UfoCapture onDone={() => { setUfo(false); lose("time"); }} />}
     </main>
   );
 }
