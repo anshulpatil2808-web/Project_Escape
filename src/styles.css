@@ -248,7 +248,7 @@
 @keyframes scan { to { background-position: 0 40px; } }
 .hud-tag { position: absolute; top: -6px; font-family: var(--font-pixel); font-size: 8px; color: var(--primary); background: var(--background); padding: 0 4px; }
 .hud-tl { left: 20px; } .hud-tr { right: 20px; color: var(--accent); }
-.warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 40; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
+.warp-banner { position: fixed; top: 40%; left: 0; right: 0; z-index: 55; text-align: center; color: var(--primary); font-size: clamp(12px, 3vw, 24px);
   text-shadow: 0 0 12px var(--primary); animation: floatIn 400ms steps(4) both, danger .5s steps(2) infinite; pointer-events: none; }
 
 /* level-to-level warp: page zooms into the portal, tunnel plays, page unfolds from the next start cell */
